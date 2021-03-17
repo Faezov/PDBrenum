@@ -1,4 +1,6 @@
-###### **Description:**
+# **PDBrenum**
+
+##### **Description:**
 
 Here  we  provide PDBrenum (python=3.6 application) that fixes the PDB sequence numbering problem by replacing the  author numbering with numbering  derived  from  the  corresponding  UniProt  sequences. 
 We obtain this correspondence from the SIFTS database from PDBe (https://www.ebi.ac.uk/pdbe/docs/sifts/). 
