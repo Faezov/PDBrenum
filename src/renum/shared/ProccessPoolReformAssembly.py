@@ -2,11 +2,13 @@ from src.download.modules import *
 from src.download.lookfilesinside import look_what_is_inside
 
 
-def check_assemblies(output_mmCIF_assembly, default_output_path_to_mmCIF_assembly):
+def check_assemblies(mmCIF_assembly, default_output_path_to_mmCIF_assembly):
     input_PDB_files_were_found_list = list()
-    input_PDB_files_were_found_list.append(output_mmCIF_assembly)
+    input_PDB_files_were_found_list.append(mmCIF_assembly)
     for name in input_PDB_files_were_found_list:
+
         not_gzip = 1
+
         try:
             file_gz = gzip.open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name), 'rt')
             list_of_lines_from_assembly_file = file_gz.readlines()
@@ -14,11 +16,19 @@ def check_assemblies(output_mmCIF_assembly, default_output_path_to_mmCIF_assembl
             file_gz = open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name), 'rt')
             list_of_lines_from_assembly_file = file_gz.readlines()
             not_gzip = 0
-
-        if "_atom_site" in list_of_lines_from_assembly_file[3] and "loop_" in list_of_lines_from_assembly_file[2]:
-            pass
-        else:
-            return name
+        except EOFError:
+            os.remove(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name))
+            # print("Warning!", "Compressed file ended before the end-of-stream marker was reached", name)
+            continue
+        try:
+            if "_atom_site" in list_of_lines_from_assembly_file[3] and "loop_" in list_of_lines_from_assembly_file[2]:
+                pass
+            else:
+                continue
+        except IndexError:
+            os.remove(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name))
+            # print("Warning!", "Empty or incomplete file", name)
+            continue
 
         new_order_for_assembly_file = list()
         for n in list_of_lines_from_assembly_file:

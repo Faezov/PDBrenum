@@ -14,7 +14,8 @@ from src.renum.mmCIF.try_MMCIF2Dict import try_MMCIF2Dict
 from src.renum.mmCIF.renum_pdbx_unobs_or_zero_occ_residues_auth_seq_id import renum_pdbx_unobs_or_zero_occ_residues_auth_seq_id
 from src.renum.mmCIF.renum_pdbx_poly_seq_scheme_auth_seq_num import renum_pdbx_poly_seq_scheme_auth_seq_num
 from src.renum.mmCIF.renum_pdbx_nonpoly_scheme_auth_seq_num import renum_pdbx_nonpoly_scheme_auth_seq_num
-from src.renum.mmCIF.renumber_small_tables import renumber_small_tables
+from src.renum.mmCIF.renum_struct_ref_seq_pdbx_auth_seq_align import renum_struct_ref_seq_pdbx_auth_seq_align
+from src.renum.mmCIF.renumber_tables import renumber_tables
 from src.renum.mmCIF.column_formation import column_formation
 
 
@@ -48,10 +49,10 @@ def master_mmCIF_renumber_function(input_mmCIF_files_were_found, default_input_p
             log_message = if_no_SIFTS_data_log(mmCIF_name, mmcif_dict, log_message)
             return log_message
 
+        # SIFTS files parsed here
         product_tree_SIFTS = try_SIFTS_tree_parser(default_input_path_to_SIFTS, SIFTS_name)
         if product_tree_SIFTS == 0:
             continue
-
         tuple_PDBe_for_PDB_and_tuple_PDB = product_tree_SIFTS[0]
         tuple_PDBe_for_UniProt_and_tuple_UniProt = product_tree_SIFTS[1]
         UniProt_conversion_dict = product_tree_SIFTS[2]
@@ -70,7 +71,7 @@ def master_mmCIF_renumber_function(input_mmCIF_files_were_found, default_input_p
                                                                    default_mmCIF_num, 'all')
         df_PDBe_PDB_UniProt = product_of_SIFTS_data_parser[1]
 
-        # all good till here
+        # count numbering changes for log_file
         handling_chain_numbering = handling_chain_numbering_clashes(df_PDBe_PDB_UniProt, exception_AccessionIDs)
         chains_to_change = handling_chain_numbering[0]
         combined_tuple_PDBe_UniProt_AccessionID = handling_chain_numbering[1]
@@ -87,7 +88,6 @@ def master_mmCIF_renumber_function(input_mmCIF_files_were_found, default_input_p
                                                       mmCIF_name, UniProt_conversion_dict, longest_AccessionID_list)
         chain_total_renum = renumbered_count[0]
         nothing_changed = renumbered_count[1]
-
         chain_total_renum.append(nothing_changed)
         mod_log_message = chain_total_renum
 
@@ -96,29 +96,44 @@ def master_mmCIF_renumber_function(input_mmCIF_files_were_found, default_input_p
             copy_file(default_input_path_to_mmCIF, mmCIF_name, default_output_path_to_mmCIF, ".cif.gz", gzip_mode)
             return mod_log_message
 
+        # mmCIF files parsed here
         product_of_mmCIF_parser = mmCIF_parser(mmCIF_name, default_input_path_to_mmCIF, df_PDBe_PDB_UniProt_without_null_index_PDBe,
                                                default_mmCIF_num, chains_to_change)
         df_final_dropped_dup = product_of_mmCIF_parser[0]
         mmcif_dict = product_of_mmCIF_parser[1]
-        _pdbx_poly_seq_scheme_auth_seq_num_before_change = product_of_mmCIF_parser[2]
-        _atom_site_label_comp_id_list = product_of_mmCIF_parser[3]
 
-        mmcif_dict_keys = mmcif_dict.keys()
-        formed_columns = column_formation(mmcif_dict_keys)
+        # for debug only
+        # _pdbx_poly_seq_scheme_auth_seq_num_before_change = product_of_mmCIF_parser[2]
+        # _atom_site_label_comp_id_list = product_of_mmCIF_parser[3]
+
+        formed_columns = column_formation(mmcif_dict)
         for n in formed_columns:
-            PDB_ins_code = n[3]
-            auth_asym_id = n[2]
-            auth_comp_id = n[1]
+            auth_comp_id = 0
             auth_seq_id = n[0]
-            renumber_small_tables(auth_comp_id, auth_asym_id, auth_seq_id, PDB_ins_code, mmcif_dict, df_final_dropped_dup, default_mmCIF_num)
+            auth_asym_id = n[1]
+            try:
+                PDB_ins_code = n[2]
+                if "ins_code" not in PDB_ins_code:
+                    auth_comp_id = PDB_ins_code
+                    PDB_ins_code = 0
+            except IndexError:
+                PDB_ins_code = 0
+            try:
+                if auth_comp_id == 0:
+                    auth_comp_id = n[3]
+            except IndexError:
+                auth_comp_id = 0
+            renumber_tables(auth_seq_id, auth_asym_id, auth_comp_id, PDB_ins_code, mmcif_dict,
+                            df_final_dropped_dup, default_mmCIF_num, chains_to_change)
 
-        # renum_struct_site_details(mmcif_dict, _atom_site_label_comp_id_list, df_final_dropped_dup, default_mmCIF_num)
+        # special case tables
         renum_pdbx_unobs_or_zero_occ_residues_auth_seq_id(mmcif_dict, df_PDBe_PDB_UniProt, default_mmCIF_num)
         renum_pdbx_poly_seq_scheme_auth_seq_num(mmcif_dict, df_final_dropped_dup, default_mmCIF_num)
         renum_pdbx_nonpoly_scheme_auth_seq_num(mmcif_dict, df_final_dropped_dup, default_mmCIF_num)
+        renum_struct_ref_seq_pdbx_auth_seq_align(mmcif_dict)
 
         # just out out.cif
-        output_with_this_name_ending(".cif", default_output_path_to_mmCIF, mmcif_dict, mmCIF_name=mmCIF_name, gzip_mode=gzip_mode,
-                                     current_directory=current_directory)
+        output_with_this_name_ending(".cif", default_output_path_to_mmCIF, mmcif_dict, mmCIF_name=mmCIF_name,
+                                     gzip_mode=gzip_mode, current_directory=current_directory)
 
         return mod_log_message

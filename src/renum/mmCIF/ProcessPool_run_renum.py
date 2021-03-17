@@ -8,6 +8,7 @@ def ProcessPool_run_renum(format_to_download, input_mmCIF_files_were_found,
                           default_output_path_to_mmCIF,
                           default_mmCIF_num, gzip_mode,
                           exception_AccessionIDs, nproc):
+
     if not os.path.exists(default_output_path_to_mmCIF):
         os.makedirs(default_output_path_to_mmCIF)
     resulting = list()

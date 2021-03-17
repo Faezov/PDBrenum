@@ -7,7 +7,7 @@
 # import argparse
 
 from src.download.modules import *
-from src.download import lefttorenumber
+from src.download.lefttorenumber import left_to_renumber_mmCIF, left_to_renumber_PDB
 from src.download.inputtextfileparser import input_text_file_parser
 from src.download.shortusagemessage import short_usage_messenger
 from src.download.longusagemessage import long_usage_messenger
@@ -149,422 +149,441 @@ else:
     nproc = None
 
 
-#####################################################################################################################################################
-# PARTIAL DB WORK #
-#####################################################################################################################################################
+if __name__ == "__main__":
 
-# RENUMBER
-# RENUMBER FROM TEXT FILE or RENUMBER FROM LIST OF ARGUMENTS
-if args.renumber_from_text_file or args.renumber_from_list_of_arguments:
-    if args.renumber_from_text_file:
-        parsed_input_text = (input_text_file_parser(args.renumber_from_text_file))
-    else:
-        parsed_input_text = args.renumber_from_list_of_arguments
+    #################################################################################################################################################
+    # PARTIAL DB WORK #
+    #################################################################################################################################################
 
-    if args.all_formats:
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        urls_to_target_mmCIF_assembly_files = url_formation_for_pool("mmCIF_assembly", parsed_input_text,
-                                                                     default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+    # RENUMBER
+    # RENUMBER FROM TEXT FILE or RENUMBER FROM LIST OF ARGUMENTS
+    if args.renumber_from_text_file or args.renumber_from_list_of_arguments:
+        if args.renumber_from_text_file:
+            parsed_input_text = (input_text_file_parser(args.renumber_from_text_file))
+        else:
+            parsed_input_text = args.renumber_from_list_of_arguments
 
-        run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_assembly_files,
-                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        if args.all_formats:
+            urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            urls_to_target_mmCIF_assembly_files = url_formation_for_pool("mmCIF_assembly", parsed_input_text,
+                                                                         default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-        # renum PDB
-        passed_as_arg_file_4Char_PDB = list()
-        for file_name in parsed_input_text:
-            passed_as_arg_file_4Char_PDB.append(file_name[:4])
-        input_PDB_files_were_found = look_what_is_inside("PDB", default_input_path_to_PDB=default_input_path_to_PDB)
-        target_files_list_PDB = list()
-        for file_name in input_PDB_files_were_found:
-            if file_name[3:7] in passed_as_arg_file_4Char_PDB:
-                target_files_list_PDB.append(file_name)
-        ProcessPool_run_renum_PDB("PDB", target_files_list_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS,
-                                  default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_assembly_files,
+                                          default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-        # renum mmCIF_assembly
-        input_mmCIF_files_were_found = look_what_is_inside("mmCIF_assembly",
-                                                           default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        passed_as_arg_file_4Char_mmCIF = list()
-        for file_name in parsed_input_text:
-            passed_as_arg_file_4Char_mmCIF.append(file_name[:4])
-        target_files_list_mmCIF = list()
-        for file_name in input_mmCIF_files_were_found:
-            if file_name[:4] in passed_as_arg_file_4Char_mmCIF:
-                target_files_list_mmCIF.append(file_name)
+            # renum PDB
+            passed_as_arg_file_4Char_PDB = list()
+            for file_name in parsed_input_text:
+                passed_as_arg_file_4Char_PDB.append(file_name[:4])
+            input_PDB_files_were_found = look_what_is_inside("PDB", default_input_path_to_PDB=default_input_path_to_PDB)
+            target_files_list_PDB = list()
+            for file_name in input_PDB_files_were_found:
+                if file_name[3:7] in passed_as_arg_file_4Char_PDB:
+                    target_files_list_PDB.append(file_name)
+            ProcessPool_run_renum_PDB("PDB", target_files_list_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS,
+                                      default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
 
-        ProcessPool_run_renum("mmCIF_assembly", target_files_list_mmCIF, default_input_path_to_mmCIF_assembly, default_input_path_to_SIFTS,
-                              default_output_path_to_mmCIF_assembly, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            # renum mmCIF_assembly
+            input_mmCIF_files_were_found = look_what_is_inside("mmCIF_assembly",
+                                                               default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            passed_as_arg_file_4Char_mmCIF = list()
+            for file_name in parsed_input_text:
+                passed_as_arg_file_4Char_mmCIF.append(file_name[:4])
+            target_files_list_mmCIF = list()
+            for file_name in input_mmCIF_files_were_found:
+                if file_name[:4] in passed_as_arg_file_4Char_mmCIF:
+                    target_files_list_mmCIF.append(file_name)
 
-        # renum mmCIF
-        input_mmCIF_files_were_found = look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        passed_as_arg_file_4Char_mmCIF = list()
-        for file_name in parsed_input_text:
-            passed_as_arg_file_4Char_mmCIF.append(file_name[:4])
-        target_files_list_mmCIF = list()
-        for file_name in input_mmCIF_files_were_found:
-            if file_name[:4] in passed_as_arg_file_4Char_mmCIF:
-                target_files_list_mmCIF.append(file_name)
-        res = ProcessPool_run_renum("mmCIF", target_files_list_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                    default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+            ProcessPool_run_renum("mmCIF_assembly", target_files_list_mmCIF, default_input_path_to_mmCIF_assembly, default_input_path_to_SIFTS,
+                                  default_output_path_to_mmCIF_assembly, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
 
-        # renum PDB_assembly
-        if not os.path.exists(default_input_path_to_PDB_assembly):
-            os.makedirs(default_input_path_to_PDB_assembly)
-        urls_to_target_PDB_files = list()
-        all_urls_set = download_pdb_assemblies_list_with_lxml()
-        for url in all_urls_set:
-            for PDB_id in parsed_input_text:
-                if PDB_id in url:
-                    urls_to_target_PDB_files.append(url)
-        run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files, default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
-        input_PDB_files_were_found = look_what_is_inside("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+            # renum mmCIF
+            input_mmCIF_files_were_found = look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            passed_as_arg_file_4Char_mmCIF = list()
+            for file_name in parsed_input_text:
+                passed_as_arg_file_4Char_mmCIF.append(file_name[:4])
+            target_files_list_mmCIF = list()
+            for file_name in input_mmCIF_files_were_found:
+                if file_name[:4] in passed_as_arg_file_4Char_mmCIF:
+                    target_files_list_mmCIF.append(file_name)
+            res = ProcessPool_run_renum("mmCIF", target_files_list_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-        passed_as_arg_file_4Char_PDB = list()
-        for file_name in parsed_input_text:
-            passed_as_arg_file_4Char_PDB.append(file_name[:4])
-        target_files_list_PDB = list()
-        for file_name in input_PDB_files_were_found:
-            if file_name[:4] in passed_as_arg_file_4Char_PDB:
-                target_files_list_PDB.append(file_name)
-        ProcessPool_run_renum_PDB("PDB_assembly", target_files_list_PDB, default_input_path_to_PDB_assembly, default_input_path_to_SIFTS,
-                                  default_output_path_to_PDB_assembly, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            # renum PDB_assembly
+            if not os.path.exists(default_input_path_to_PDB_assembly):
+                os.makedirs(default_input_path_to_PDB_assembly)
+            urls_to_target_PDB_files = list()
+            all_urls_set = download_pdb_assemblies_list_with_lxml()
+            for url in all_urls_set:
+                for PDB_id in parsed_input_text:
+                    if PDB_id in url:
+                        urls_to_target_PDB_files.append(url)
+            run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files,
+                                          default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+            input_PDB_files_were_found = look_what_is_inside("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
 
-    elif args.PDB_assembly_format_only:
-        if not os.path.exists(default_input_path_to_PDB_assembly):
-            os.makedirs(default_input_path_to_PDB_assembly)
-        urls_to_target_PDB_files = list()
-        all_urls_set = download_pdb_assemblies_list_with_lxml()
-        for url in all_urls_set:
-            for PDB_id in parsed_input_text:
-                if PDB_id in url:
-                    urls_to_target_PDB_files.append(url)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files, default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            passed_as_arg_file_4Char_PDB = list()
+            for file_name in parsed_input_text:
+                passed_as_arg_file_4Char_PDB.append(file_name[:4])
+            target_files_list_PDB = list()
+            for file_name in input_PDB_files_were_found:
+                if file_name[:4] in passed_as_arg_file_4Char_PDB:
+                    target_files_list_PDB.append(file_name)
+            ProcessPool_run_renum_PDB("PDB_assembly", target_files_list_PDB, default_input_path_to_PDB_assembly, default_input_path_to_SIFTS,
+                                      default_output_path_to_PDB_assembly, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
 
-        input_PDB_files_were_found = look_what_is_inside("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
-        passed_as_arg_file_4Char_PDB = list()
-        for file_name in parsed_input_text:
-            passed_as_arg_file_4Char_PDB.append(file_name[:4])
-        target_files_list_PDB = list()
-        for file_name in input_PDB_files_were_found:
-            if file_name[:4] in passed_as_arg_file_4Char_PDB:
-                target_files_list_PDB.append(file_name)
+        elif args.PDB_assembly_format_only:
+            if not os.path.exists(default_input_path_to_PDB_assembly):
+                os.makedirs(default_input_path_to_PDB_assembly)
+            urls_to_target_PDB_files = list()
+            all_urls_set = download_pdb_assemblies_list_with_lxml()
+            for url in all_urls_set:
+                for PDB_id in parsed_input_text:
+                    if PDB_id in url:
+                        urls_to_target_PDB_files.append(url)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files,
+                                          default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-        res = ProcessPool_run_renum_PDB("PDB_assembly", target_files_list_PDB, default_input_path_to_PDB_assembly, default_input_path_to_SIFTS,
-                                        default_output_path_to_PDB_assembly, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+            input_PDB_files_were_found = look_what_is_inside("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+            passed_as_arg_file_4Char_PDB = list()
+            for file_name in parsed_input_text:
+                passed_as_arg_file_4Char_PDB.append(file_name[:4])
+            target_files_list_PDB = list()
+            for file_name in input_PDB_files_were_found:
+                if file_name[:4] in passed_as_arg_file_4Char_PDB:
+                    target_files_list_PDB.append(file_name)
 
-    elif args.PDB_format_only:
-        urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            res = ProcessPool_run_renum_PDB("PDB_assembly", target_files_list_PDB, default_input_path_to_PDB_assembly, default_input_path_to_SIFTS,
+                                            default_output_path_to_PDB_assembly, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-        input_PDB_files_were_found = look_what_is_inside("PDB", default_input_path_to_PDB=default_input_path_to_PDB)
-        passed_as_arg_file_4Char_PDB = list()
-        for file_name in parsed_input_text:
-            passed_as_arg_file_4Char_PDB.append(file_name[:4])
-        target_files_list_PDB = list()
-        for file_name in input_PDB_files_were_found:
-            if file_name[3:7] in passed_as_arg_file_4Char_PDB:
-                target_files_list_PDB.append(file_name)
+        elif args.PDB_format_only:
+            urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-        res = ProcessPool_run_renum_PDB("PDB", target_files_list_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS,
-                                        default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+            input_PDB_files_were_found = look_what_is_inside("PDB", default_input_path_to_PDB=default_input_path_to_PDB)
+            passed_as_arg_file_4Char_PDB = list()
+            for file_name in parsed_input_text:
+                passed_as_arg_file_4Char_PDB.append(file_name[:4])
+            target_files_list_PDB = list()
+            for file_name in input_PDB_files_were_found:
+                if file_name[3:7] in passed_as_arg_file_4Char_PDB:
+                    target_files_list_PDB.append(file_name)
 
-    elif args.mmCIF_assembly_format_only:
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF_assembly", parsed_input_text,
-                                                            default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_files,
-                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            res = ProcessPool_run_renum_PDB("PDB", target_files_list_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS,
+                                            default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-        input_mmCIF_files_were_found = look_what_is_inside("mmCIF_assembly",
-                                                           default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        passed_as_args_files_list_4Char = list()
-        for file_name in parsed_input_text:
-            passed_as_args_files_list_4Char.append(file_name[:4])
+        elif args.mmCIF_assembly_format_only:
+            urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF_assembly", parsed_input_text,
+                                                                default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_files,
+                                          default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-        target_files_list = list()
-        for file_name in input_mmCIF_files_were_found:
-            if file_name[:4] in passed_as_args_files_list_4Char:
-                target_files_list.append(file_name)
+            input_mmCIF_files_were_found = look_what_is_inside("mmCIF_assembly",
+                                                               default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            passed_as_args_files_list_4Char = list()
+            for file_name in parsed_input_text:
+                passed_as_args_files_list_4Char.append(file_name[:4])
 
-        if not os.path.exists(default_output_path_to_mmCIF_assembly):
-            os.makedirs(default_output_path_to_mmCIF_assembly)
-        res = ProcessPool_run_renum("mmCIF_assembly", target_files_list, default_input_path_to_mmCIF_assembly, default_input_path_to_SIFTS,
-                                    default_output_path_to_mmCIF_assembly, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
-        log_writer(res)
+            target_files_list = list()
+            for file_name in input_mmCIF_files_were_found:
+                if file_name[:4] in passed_as_args_files_list_4Char:
+                    target_files_list.append(file_name)
 
-    else:
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            if not os.path.exists(default_output_path_to_mmCIF_assembly):
+                os.makedirs(default_output_path_to_mmCIF_assembly)
+            res = ProcessPool_run_renum("mmCIF_assembly", target_files_list, default_input_path_to_mmCIF_assembly, default_input_path_to_SIFTS,
+                                        default_output_path_to_mmCIF_assembly, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            log_writer(res)
 
-        input_mmCIF_files_were_found = look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        passed_as_args_files_list_4Char = list()
-        for file_name in parsed_input_text:
-            passed_as_args_files_list_4Char.append(file_name[:4])
+        else:
+            urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-        target_files_list = list()
-        for file_name in input_mmCIF_files_were_found:
-            if file_name[:4] in passed_as_args_files_list_4Char:
-                target_files_list.append(file_name)
+            input_mmCIF_files_were_found = look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            passed_as_args_files_list_4Char = list()
+            for file_name in parsed_input_text:
+                passed_as_args_files_list_4Char.append(file_name[:4])
 
-        if not os.path.exists(default_output_path_to_mmCIF):
-            os.makedirs(default_output_path_to_mmCIF)
-        res = ProcessPool_run_renum("mmCIF", target_files_list, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                    default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+            target_files_list = list()
+            for file_name in input_mmCIF_files_were_found:
+                if file_name[:4] in passed_as_args_files_list_4Char:
+                    target_files_list.append(file_name)
 
+            if not os.path.exists(default_output_path_to_mmCIF):
+                os.makedirs(default_output_path_to_mmCIF)
+            res = ProcessPool_run_renum("mmCIF", target_files_list, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-# DOWNLOAD
-# DOWNLOAD FROM TEXT FILE or DOWNLOAD FROM LIST
-if args.download_from_text_file or args.download_from_list_of_arguments:
-    if args.download_from_text_file:
-        parsed_input_text = (input_text_file_parser(args.download_from_text_file))
-    else:
-        parsed_input_text = args.download_from_list_of_arguments
+    # DOWNLOAD
+    # DOWNLOAD FROM TEXT FILE or DOWNLOAD FROM LIST
+    if args.download_from_text_file or args.download_from_list_of_arguments:
+        if args.download_from_text_file:
+            parsed_input_text = (input_text_file_parser(args.download_from_text_file))
+        else:
+            parsed_input_text = args.download_from_list_of_arguments
 
-    if args.all_formats:
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_files,
-                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        # PDB_assembly download
-        urls_to_target_PDB_files = list()
-        all_urls_set = download_pdb_assemblies_list_with_lxml()
-        for url in all_urls_set:
-            for PDB_id in parsed_input_text:
-                if PDB_id in url:
-                    urls_to_target_PDB_files.append(url)
-        run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files, default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+        if args.all_formats:
+            urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_files,
+                                          default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            # PDB_assembly download
+            urls_to_target_PDB_files = list()
+            all_urls_set = download_pdb_assemblies_list_with_lxml()
+            for url in all_urls_set:
+                for PDB_id in parsed_input_text:
+                    if PDB_id in url:
+                        urls_to_target_PDB_files.append(url)
+            run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files,
+                                          default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
 
-    elif args.PDB_assembly_format_only:
-        urls_to_target_PDB_files = list()
-        all_urls_set = download_pdb_assemblies_list_with_lxml()
-        for url in all_urls_set:
-            for PDB_id in parsed_input_text:
-                if PDB_id in url:
-                    urls_to_target_PDB_files.append(url)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files, default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        elif args.PDB_assembly_format_only:
+            urls_to_target_PDB_files = list()
+            all_urls_set = download_pdb_assemblies_list_with_lxml()
+            for url in all_urls_set:
+                for PDB_id in parsed_input_text:
+                    if PDB_id in url:
+                        urls_to_target_PDB_files.append(url)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("PDB_assembly", urls_to_target_PDB_files,
+                                          default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-    elif args.PDB_format_only:
-        urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        elif args.PDB_format_only:
+            urls_to_target_PDB_files = url_formation_for_pool("PDB", parsed_input_text, default_input_path_to_PDB=default_input_path_to_PDB)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-    elif args.mmCIF_assembly_format_only:
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF_assembly", parsed_input_text,
-                                                            default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_files,
-                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        elif args.mmCIF_assembly_format_only:
+            urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF_assembly", parsed_input_text,
+                                                                default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_files,
+                                          default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-    else:
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        else:
+            urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", parsed_input_text, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", parsed_input_text, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+            run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
+    #################################################################################################################################################
+    # WHOLE DB WORK #
+    #################################################################################################################################################
 
-#####################################################################################################################################################
-# WHOLE DB WORK #
-#####################################################################################################################################################
+    # RENUMBER ENTIRE DB
+    if args.renumber_entire_database:
+        if args.all_formats:
+            print("Starting to renumber all databases...")
+            print("Please, be patient...")
+            # renumber mmCIF
+            supreme_download_master("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            mmCIF_files_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                                                  default_output_path_to_mmCIF=default_output_path_to_mmCIF)
+            res = ProcessPool_run_renum("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-# RENUMBER ENTIRE DB
-if args.renumber_entire_database:
-    if args.all_formats:
-        print("Starting to renumber all databases...")
-        print("Please, be patient...")
-        # renumber mmCIF
-        supreme_download_master("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF, 
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        mmCIF_files_left_to_renumber = lefttorenumber.left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF,
-                                                                             default_output_path_to_mmCIF=default_output_path_to_mmCIF)
-        res = ProcessPool_run_renum("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                    default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+            # renumber mmCIF_assembly
+            supreme_download_master("mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            mmCIF_assembly_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF_assembly,
+                                                                     default_output_path_to_mmCIF=default_output_path_to_mmCIF_assembly)
+            ProcessPool_run_renum("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly,
+                                  default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly,
+                                  default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
 
-        # renumber mmCIF_assembly
-        supreme_download_master("mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        mmCIF_assembly_left_to_renumber = lefttorenumber.left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF_assembly,
-                                                                                default_output_path_to_mmCIF=default_output_path_to_mmCIF_assembly)
-        ProcessPool_run_renum("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly, default_input_path_to_SIFTS,
-                              default_output_path_to_mmCIF_assembly, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            # renumber PDB_assembly
+            supreme_download_master("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            PDB_assembly_files_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_PDB_assembly,
+                                                                         default_output_path_to_mmCIF=default_output_path_to_PDB_assembly)
+            ProcessPool_run_renum_PDB("PDB_assembly", PDB_assembly_files_left_to_renumber, default_input_path_to_PDB_assembly,
+                                      default_input_path_to_SIFTS, default_output_path_to_PDB_assembly, default_PDB_num,
+                                      gzip_mode, exception_AccessionIDs, nproc)
 
-        # renumber PDB_assembly
-        supreme_download_master("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        PDB_assembly_files_left_to_renumber = lefttorenumber.left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_PDB_assembly,
-                                                                                    default_output_path_to_mmCIF=default_output_path_to_PDB_assembly)
-        ProcessPool_run_renum_PDB("PDB_assembly", PDB_assembly_files_left_to_renumber, default_input_path_to_PDB_assembly,
-                                  default_input_path_to_SIFTS, default_output_path_to_PDB_assembly, default_PDB_num,
-                                  gzip_mode, exception_AccessionIDs, nproc)
+            # renumber PDB
+            supreme_download_master("PDB", default_input_path_to_PDB=default_input_path_to_PDB,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            PDB_files_left_to_renumber = left_to_renumber_PDB(default_input_path_to_PDB=default_input_path_to_PDB,
+                                                              default_output_path_to_PDB=default_output_path_to_PDB)
+            ProcessPool_run_renum_PDB("PDB", PDB_files_left_to_renumber, default_input_path_to_PDB, default_input_path_to_SIFTS,
+                                      default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
 
-        # renumber PDB
-        supreme_download_master("PDB", default_input_path_to_PDB=default_input_path_to_PDB, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        PDB_files_left_to_renumber = lefttorenumber.left_to_renumber_PDB(default_input_path_to_PDB=default_input_path_to_PDB,
-                                                                         default_output_path_to_PDB=default_output_path_to_PDB)
-        ProcessPool_run_renum_PDB("PDB", PDB_files_left_to_renumber, default_input_path_to_PDB, default_input_path_to_SIFTS,
-                                  default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+        elif args.PDB_assembly_format_only:
+            print("Starting to renumber entire PDB_assembly database...")
+            print("Please, be patient...")
+            supreme_download_master("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            PDB_assembly_files_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_PDB_assembly,
+                                                                         default_output_path_to_mmCIF=default_output_path_to_PDB_assembly)
+            res = ProcessPool_run_renum_PDB("PDB_assembly", PDB_assembly_files_left_to_renumber, default_input_path_to_PDB_assembly,
+                                            default_input_path_to_SIFTS, default_output_path_to_PDB_assembly, default_PDB_num,
+                                            gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-    elif args.PDB_assembly_format_only:
-        print("Starting to renumber entire PDB_assembly database...")
-        print("Please, be patient...")
-        supreme_download_master("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        PDB_assembly_files_left_to_renumber = lefttorenumber.left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_PDB_assembly,
-                                                                                    default_output_path_to_mmCIF=default_output_path_to_PDB_assembly)
-        res = ProcessPool_run_renum_PDB("PDB_assembly", PDB_assembly_files_left_to_renumber, default_input_path_to_PDB_assembly,
-                                        default_input_path_to_SIFTS, default_output_path_to_PDB_assembly, default_PDB_num,
+        elif args.PDB_format_only:
+            print("Starting to renumber entire PDB database...")
+            print("Please, be patient...")
+            supreme_download_master("PDB", default_input_path_to_PDB=default_input_path_to_PDB,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            PDB_files_left_to_renumber = left_to_renumber_PDB(default_input_path_to_PDB=default_input_path_to_PDB,
+                                                              default_output_path_to_PDB=default_output_path_to_PDB)
+            res = ProcessPool_run_renum_PDB("PDB", PDB_files_left_to_renumber, default_input_path_to_PDB, default_input_path_to_SIFTS,
+                                            default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
+
+        elif args.mmCIF_assembly_format_only:
+            print("Starting to renumber entire mmCIF_assembly database...")
+            print("Please, be patient...")
+            supreme_download_master("mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            mmCIF_assembly_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF_assembly,
+                                                                     default_output_path_to_mmCIF=default_output_path_to_mmCIF_assembly)
+            res = ProcessPool_run_renum("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly,
+                                        default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
                                         gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            log_writer(res)
 
-    elif args.PDB_format_only:
-        print("Starting to renumber entire PDB database...")
-        print("Please, be patient...")
-        supreme_download_master("PDB", default_input_path_to_PDB=default_input_path_to_PDB, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        PDB_files_left_to_renumber = lefttorenumber.left_to_renumber_PDB(default_input_path_to_PDB=default_input_path_to_PDB,
-                                                                         default_output_path_to_PDB=default_output_path_to_PDB)
-        res = ProcessPool_run_renum_PDB("PDB", PDB_files_left_to_renumber, default_input_path_to_PDB, default_input_path_to_SIFTS,
-                                        default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+        else:
+            print("Starting to renumber entire mmCIF database...")
+            print("Please, be patient...")
+            supreme_download_master("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            mmCIF_files_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                                                  default_output_path_to_mmCIF=default_output_path_to_mmCIF)
+            res = ProcessPool_run_renum("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-    elif args.mmCIF_assembly_format_only:
-        print("Starting to renumber entire mmCIF_assembly database...")
-        print("Please, be patient...")
-        supreme_download_master("mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        mmCIF_assembly_left_to_renumber = lefttorenumber.left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF_assembly,
-                                                                                default_output_path_to_mmCIF=default_output_path_to_mmCIF_assembly)
-        res = ProcessPool_run_renum("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly,
-                                    default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
-                                    gzip_mode, exception_AccessionIDs, nproc)
-        ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
-        log_writer(res)
+    # DOWNLOAD ENTIRE DB
+    if args.download_entire_database:
+        if args.all_formats:
+            print("Starting to download all databases...")
+            print("Please, be patient...")
+            supreme_download_master("all", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                    default_input_path_to_PDB=default_input_path_to_PDB,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS,
+                                    default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
+                                    default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
 
-    else:
-        print("Starting to renumber entire mmCIF database...")
-        print("Please, be patient...")
-        supreme_download_master("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF, 
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        mmCIF_files_left_to_renumber = lefttorenumber.left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF,
-                                                                             default_output_path_to_mmCIF=default_output_path_to_mmCIF)
-        res = ProcessPool_run_renum("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                    default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+        elif args.PDB_format_only:
+            print("Starting to download entire PDB database...")
+            print("Please, be patient...")
+            supreme_download_master("PDB", default_input_path_to_PDB=default_input_path_to_PDB,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-# DOWNLOAD ENTIRE DB
-if args.download_entire_database:
-    if args.all_formats:
-        print("Starting to download all databases...")
-        print("Please, be patient...")
-        supreme_download_master("all", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
-                                default_input_path_to_PDB=default_input_path_to_PDB,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS,
-                                default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
-                                default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+        elif args.PDB_assembly_format_only:
+            print("Starting to download entire PDB_assembly database...")
+            print("Please, be patient...")
+            supreme_download_master("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-    elif args.PDB_format_only:
-        print("Starting to download entire PDB database...")
-        print("Please, be patient...")
-        supreme_download_master("PDB", default_input_path_to_PDB=default_input_path_to_PDB,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        elif args.mmCIF_assembly_format_only:
+            print("Starting to download entire mmCIF_assembly database...")
+            print("Please, be patient...")
+            supreme_download_master("mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-    elif args.PDB_assembly_format_only:
-        print("Starting to download entire PDB_assembly database...")
-        print("Please, be patient...")
-        supreme_download_master("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        else:
+            print("Starting to download entire mmCIF database...")
+            print("Please, be patient...")
+            supreme_download_master("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                    default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-    elif args.mmCIF_assembly_format_only:
-        print("Starting to download entire mmCIF_assembly database...")
-        print("Please, be patient...")
-        supreme_download_master("mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+    # REFRESH ENTIRE DB
+    if args.refresh_entire_database:
+        if args.all_formats:
+            print("Starting to refresh all databases...")
+            print("Please, be patient...")
+            left_to_refresh = supreme_download_master("all", "refresh", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                                      default_input_path_to_PDB=default_input_path_to_PDB,
+                                                      default_input_path_to_SIFTS=default_input_path_to_SIFTS,
+                                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
+                                                      default_input_path_to_PDB_assembly=default_input_path_to_mmCIF_assembly)
+            left_to_refresh_mmCIF = left_to_refresh[0]
+            left_to_refresh_PDB = left_to_refresh[1]
+            lefttodownload_mmCIF_assemblies = left_to_refresh[2]
+            lefttodownload_PDB_assemblies = left_to_refresh[3]
+            ProcessPool_run_renum_PDB("PDB_assembly", lefttodownload_PDB_assemblies, default_input_path_to_PDB_assembly,
+                                      default_input_path_to_SIFTS, default_output_path_to_PDB_assembly,
+                                      default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            ProcessPool_run_renum_PDB("PDB", left_to_refresh_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS, default_output_path_to_PDB,
+                                      default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            ProcessPool_run_renum("mmCIF_assembly", lefttodownload_mmCIF_assemblies, default_input_path_to_mmCIF_assembly,
+                                  default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                  gzip_mode, exception_AccessionIDs, nproc)
+            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            res = ProcessPool_run_renum("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-    else:
-        print("Starting to download entire mmCIF database...")
-        print("Please, be patient...")
-        supreme_download_master("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF, 
-                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        elif args.PDB_assembly_format_only:
+            print("Starting to refresh entire PDB_assembly database...")
+            print("Please, be patient...")
+            left_to_refresh_PDB_assembly = supreme_download_master("PDB_assembly", "refresh",
+                                                                   default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
+                                                                   default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            res = ProcessPool_run_renum_PDB("PDB_assembly", left_to_refresh_PDB_assembly, default_input_path_to_PDB_assembly,
+                                            default_input_path_to_SIFTS, default_output_path_to_PDB_assembly,
+                                            default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-# REFRESH ENTIRE DB
-if args.refresh_entire_database:
-    if args.all_formats:
-        print("Starting to refresh all databases...")
-        print("Please, be patient...")
-        left_to_refresh = supreme_download_master("all", "refresh", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
-                                                  default_input_path_to_PDB=default_input_path_to_PDB,
-                                                  default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        left_to_refresh_mmCIF = left_to_refresh[0]
-        left_to_refresh_PDB = left_to_refresh[1]
-        ProcessPool_run_renum_PDB("PDB", left_to_refresh_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS, default_output_path_to_PDB,
-                                  default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
-        res = ProcessPool_run_renum("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                    default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+        elif args.PDB_format_only:
+            print("Starting to refresh entire PDB database...")
+            print("Please, be patient...")
+            left_to_refresh_PDB = supreme_download_master("PDB", "refresh", default_input_path_to_PDB=default_input_path_to_PDB,
+                                                          default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            res = ProcessPool_run_renum_PDB("PDB", left_to_refresh_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS,
+                                            default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)
 
-    elif args.PDB_assembly_format_only:
-        print("Starting to refresh entire PDB_assembly database...")
-        print("Please, be patient...")
-        left_to_refresh_PDB_assembly = supreme_download_master("PDB_assembly", "refresh",
-                                                               default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
-                                                               default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        res = ProcessPool_run_renum_PDB("PDB_assembly", left_to_refresh_PDB_assembly, default_input_path_to_PDB_assembly, default_input_path_to_SIFTS,
-                                        default_output_path_to_PDB_assembly, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+        elif args.mmCIF_assembly_format_only:
+            print("Starting to refresh entire mmCIF_assembly database...")
+            print("Please, be patient...")
+            left_to_refresh_mmCIF_assembly = supreme_download_master("mmCIF_assembly", "refresh",
+                                                                     default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
+                                                                     default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-    elif args.PDB_format_only:
-        print("Starting to refresh entire PDB database...")
-        print("Please, be patient...")
-        left_to_refresh_PDB = supreme_download_master("PDB", "refresh", default_input_path_to_PDB=default_input_path_to_PDB,
-                                                      default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        res = ProcessPool_run_renum_PDB("PDB", left_to_refresh_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS,
-                                        default_output_path_to_PDB, default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+            res = ProcessPool_run_renum("mmCIF_assembly", left_to_refresh_mmCIF_assembly, default_input_path_to_mmCIF_assembly,
+                                        default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                        gzip_mode, exception_AccessionIDs, nproc)
+            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            log_writer(res)
 
-    elif args.mmCIF_assembly_format_only:
-        print("Starting to refresh entire mmCIF_assembly database...")
-        print("Please, be patient...")
-        left_to_refresh_mmCIF_assembly = supreme_download_master("mmCIF_assembly", "refresh",
-                                                                 default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
-                                                                 default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-
-        res = ProcessPool_run_renum("mmCIF_assembly", left_to_refresh_mmCIF_assembly, default_input_path_to_mmCIF_assembly,
-                                    default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
-                                    gzip_mode, exception_AccessionIDs, nproc)
-        ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
-        log_writer(res)
-
-    else:
-        print("Starting to refresh entire mmCIF database...")
-        print("Please, be patient...")
-        left_to_refresh_mmCIF = supreme_download_master("mmCIF", "refresh", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
-                                                        default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        res = ProcessPool_run_renum("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                    default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-        log_writer(res)
+        else:
+            print("Starting to refresh entire mmCIF database...")
+            print("Please, be patient...")
+            left_to_refresh_mmCIF = supreme_download_master("mmCIF", "refresh", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                                            default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+            res = ProcessPool_run_renum("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            log_writer(res)

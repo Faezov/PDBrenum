@@ -1,82 +1,65 @@
-def column_formation(mmcif_dict_keys):
-    auth_comp_id_keylist = list()
-    auth_asym_id_keylist = list()
-    auth_seq_id_keylist = list()
-    PDB_ins_code_keylist = list()
-
+def column_formation(mmcif_dict):
+    mmcif_dict_keys = mmcif_dict.keys()
+    aut_seq_all_splitted = list()
     for key in mmcif_dict_keys:
-        if "auth_seq_id" in key:
-            auth_seq_id_keylist.append(key)
-        if "auth_asym_id" in key:
-            auth_asym_id_keylist.append(key)
-        if "auth_comp_id" in key:
-            auth_comp_id_keylist.append(key)
-        if "ins_code" in key:
-            PDB_ins_code_keylist.append(key)
+        key_dot_splitted = key.split(".")
+        for tab_name_col_name in key_dot_splitted:
+            if "auth_seq" in tab_name_col_name:
+                if "auth_seq_id" in key:
+                    aut_seq_all_splitted.append(key_dot_splitted[:1]+key_dot_splitted[1].split("auth_seq_id"))
+                if "auth_seq_num" in key:
+                    aut_seq_all_splitted.append(key_dot_splitted[:1]+key_dot_splitted[1].split("auth_seq_num"))
 
-    initial_replacement_1 = {n.replace('auth_seq_id', 'HERE_SHOULD_BE_IT') for n in auth_seq_id_keylist}
-    reverse_replacement_1 = {(n.replace('HERE_SHOULD_BE_IT', 'auth_seq_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_comp_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_asym_id'),
-                              n.replace("HERE_SHOULD_BE_IT", "pdbx_PDB_ins_code")) for n in initial_replacement_1}
-    reverse_replacement_2 = {(n.replace('HERE_SHOULD_BE_IT', 'auth_seq_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_comp_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_asym_id'),
-                              n.replace("HERE_SHOULD_BE_IT", "PDB_ins_code")) for n in initial_replacement_1}
-    reverse_replacement_3 = {(n.replace('HERE_SHOULD_BE_IT', 'auth_seq_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_comp_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_asym_id'),
-                              n.replace("HERE_SHOULD_BE_IT", "pdbx_auth_ins_code")) for n in initial_replacement_1}
+    totaling_combinations = list()
+    for table_name_prefix_suffix in aut_seq_all_splitted:
+        combinations = list()
+        for key in mmcif_dict_keys:
+            if table_name_prefix_suffix[0] == key.split(".")[0]:
+                # res_num auth_seq_id or auth_seq_num
+                if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
+                        and "auth_seq_id" in key or "auth_seq_num" in key:
+                    combinations.append(key)
+                # chain auth_asym_id or strand_id
+                if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
+                        and "auth_asym_id" in key or "strand_id" in key:
+                    combinations.append(key)
+                # ins_code
+                if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
+                        and "ins_code" in key:
+                    combinations.append(key)
+                # monomer_type or auth_comp_id or auth_mon_id or mon_id for _struct_ref_seq_dif
+                if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
+                        and "auth_comp_id" in key or "auth_mon_id" in key:
+                    combinations.append(key)
+                elif table_name_prefix_suffix[0] == "_struct_ref_seq_dif" \
+                        and "mon_id" in key and "db_mon_id" not in key:
+                    combinations.append(key)
 
-    initial_replacement_2 = {n.replace("pdbx_pdb_ins_code", 'HERE_SHOULD_BE_IT') for n in PDB_ins_code_keylist}
-    reverse_replacement_4 = {(n.replace('HERE_SHOULD_BE_IT', 'pdbx_auth_seq_num'),
-                              n.replace('HERE_SHOULD_BE_IT', 'mon_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'pdbx_pdb_strand_id'),
-                              n.replace("HERE_SHOULD_BE_IT", "pdbx_pdb_ins_code")) for n in initial_replacement_2}
+        # work assuming all the elements in right order
+        # and they are not crossing each other
+        if len(combinations) > 4:
+            combinations = combinations[:4]
 
-    uniq_PDB_ins_code_keylist = list()
-    for n in PDB_ins_code_keylist:
-        nsplit = n.split(".")
-        if nsplit[1][0:4] == "pdbx":
-            nstrip = nsplit[1].strip("pdbx")
-            lstrip = nstrip.lstrip("_")
-        else:
-            lstrip = nsplit[1]
-        if lstrip not in uniq_PDB_ins_code_keylist:
-            uniq_PDB_ins_code_keylist.append((nsplit[0] + "." + lstrip))
+        ordered_combination = list()
+        for name in combinations:
+            if "auth_seq" in name:
+                ordered_combination.insert(0, name)
+        for name in combinations:
+            if "auth_asym_id" in name or "strand_id" in name:
+                ordered_combination.insert(1, name)
+        for name in combinations:
+            if "ins_code" in name:
+                ordered_combination.insert(2, name)
+        for name in combinations:
+            if "auth_comp_id" in name or "mon_id" in name:
+                ordered_combination.insert(3, name)
 
-    initial_replacement_4 = {n.replace("PDB_ins_code", 'HERE_SHOULD_BE_IT') for n in uniq_PDB_ins_code_keylist}
-    reverse_replacement_5 = {(n.replace('HERE_SHOULD_BE_IT', 'auth_seq_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_comp_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_asym_id'),
-                              n.replace("HERE_SHOULD_BE_IT", "PDB_ins_code")) for n in initial_replacement_4}
+        # exceptions
+        if ("pdbx_unobs_or_zero_occ_residues" not in ordered_combination[0]
+                and "nonpoly_scheme" not in ordered_combination[0]
+                and "poly_seq_scheme" not in ordered_combination[0]
+                and "ndb_struct_na_base" not in ordered_combination[0]):
+            totaling_combinations.append(ordered_combination)
 
-    initial_replacement_5 = {n.replace("pdb_ins_code", 'HERE_SHOULD_BE_IT') for n in uniq_PDB_ins_code_keylist}
-    reverse_replacement_6 = {(n.replace('HERE_SHOULD_BE_IT', 'auth_seq_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_comp_id'),
-                              n.replace('HERE_SHOULD_BE_IT', 'auth_asym_id'),
-                              n.replace("HERE_SHOULD_BE_IT", "pdb_ins_code")) for n in initial_replacement_5}
+    return totaling_combinations
 
-    reverse_replacement_7 = list()
-    for n in reverse_replacement_5:
-        nsplit_3 = n[3].split(".")
-        pdbx_nsplit_3 = nsplit_3[0] + ".pdbx_" + nsplit_3[1]
-        reverse_replacement_7.append((n[0], n[1], n[2], pdbx_nsplit_3))
-
-    all_replacement_sets = list()
-    all_replacement_sets.extend(reverse_replacement_1)
-    all_replacement_sets.extend(reverse_replacement_2)
-    all_replacement_sets.extend(reverse_replacement_3)
-    all_replacement_sets.extend(reverse_replacement_4)
-    all_replacement_sets.extend(reverse_replacement_5)
-    all_replacement_sets.extend(reverse_replacement_6)
-    all_replacement_sets.extend(reverse_replacement_7)
-
-    final_set_of_replacements = list()
-    for n in all_replacement_sets:
-        if n not in final_set_of_replacements:
-            if n[0] != n[1]:
-                if "_pdbx_poly_seq_scheme" or "_pdbx_nonpoly_scheme" or "_pdbx_unobs_or_zero_occ_residues" not in n[0]:
-                    final_set_of_replacements.append(n)
-
-    return final_set_of_replacements

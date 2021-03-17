@@ -25,18 +25,20 @@ def renum_pdbx_nonpoly_scheme_auth_seq_num(mmcif_dict, df_final_dropped_dup, def
         _pdbx_nonpoly_scheme_auth_mon_id = [_pdbx_nonpoly_scheme_auth_mon_id]
         _pdbx_nonpoly_scheme_pdb_strand_id = [_pdbx_nonpoly_scheme_pdb_strand_id]
 
-    mmCIF_pdbx_nonpoly_scheme_pdb = list(
-        zip(_pdbx_nonpoly_scheme_pdb_seq_num, _pdbx_nonpoly_scheme_pdb_mon_id, _pdbx_nonpoly_scheme_pdb_strand_id))
-    mmCIF_pdbx_nonpoly_scheme_auth = list(
-        zip(_pdbx_nonpoly_scheme_auth_seq_num, _pdbx_nonpoly_scheme_auth_mon_id, _pdbx_nonpoly_scheme_pdb_strand_id))
+    mmCIF_pdbx_nonpoly_scheme_pdb = list(zip(_pdbx_nonpoly_scheme_pdb_seq_num,
+                                             _pdbx_nonpoly_scheme_pdb_mon_id,
+                                             _pdbx_nonpoly_scheme_pdb_strand_id))
+    mmCIF_pdbx_nonpoly_scheme_auth = list(zip(_pdbx_nonpoly_scheme_auth_seq_num,
+                                              _pdbx_nonpoly_scheme_auth_mon_id,
+                                              _pdbx_nonpoly_scheme_pdb_strand_id))
 
     df_mmCIF_pdbx_nonpoly_scheme = pd.DataFrame(zip(mmCIF_pdbx_nonpoly_scheme_pdb, mmCIF_pdbx_nonpoly_scheme_auth))
     df_mmCIF_pdbx_nonpoly_scheme = df_mmCIF_pdbx_nonpoly_scheme.rename(columns={0: "pdbx_nonpoly_scheme_pdb", 1: "pdbx_nonpoly_scheme_auth"})
 
-    df_pdbx_nonpoly_scheme_auth_final = df_mmCIF_pdbx_nonpoly_scheme.merge(df_final_dropped_dup, left_on="pdbx_nonpoly_scheme_auth",
-                                                                           right_on="auth_mmCIF", how='left')
-    df_pdbx_nonpoly_scheme_auth_final['Three_Rows_CIF_Num_Uni'] = df_pdbx_nonpoly_scheme_auth_final['Three_Rows_CIF_Num_Uni'].replace(np.nan,
-                                                                                                                                      "Not in SIFTS")
+    df_pdbx_nonpoly_scheme_auth_final = df_mmCIF_pdbx_nonpoly_scheme.merge(
+        df_final_dropped_dup, left_on="pdbx_nonpoly_scheme_auth", right_on="auth_mmCIF", how='left')
+    df_pdbx_nonpoly_scheme_auth_final['Three_Rows_CIF_Num_Uni'] = df_pdbx_nonpoly_scheme_auth_final['Three_Rows_CIF_Num_Uni'].replace(
+        np.nan, "Not in SIFTS")
     df_pdbx_nonpoly_scheme_auth_final["Three_Rows_CIF_Num_Uni_new"] = np.where(
         df_pdbx_nonpoly_scheme_auth_final['Three_Rows_CIF_Num_Uni'] != "Not in SIFTS",
         df_pdbx_nonpoly_scheme_auth_final['Three_Rows_CIF_Num_Uni'],
@@ -49,15 +51,16 @@ def renum_pdbx_nonpoly_scheme_auth_seq_num(mmcif_dict, df_final_dropped_dup, def
     for n in df_pdbx_nonpoly_scheme_auth_final:
         try:
             if n[0] == n[2]:
-                FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final.append(str((int(n[1]) + default_mmCIF_num)))
+                FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final.append(str((int(n[1]) + default_mmCIF_num + 10000)))
             elif n[0][0] != ".":
                 FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final.append(str(n[1]))
             else:
-                FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final.append(str((int(n[1]) + default_mmCIF_num)))
+                FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final.append(str((int(n[1]) + default_mmCIF_num + 10000)))
         except ValueError:
-            FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final.append(str(int(''.join(filter(lambda i: i.isdigit(), n[1]))) + default_mmCIF_num))
+            FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final.append(
+                str(int(''.join(filter(lambda i: i.isdigit(), n[1]))) + default_mmCIF_num + 10000))
     try:
-        mmcif_dict["_pdbx_nonpoly_scheme.auth_seq_num"]
+        mmcif_dict["_pdbx_nonpoly_scheme.auth_seq_num"]  # check if key exists
         mmcif_dict["_pdbx_nonpoly_scheme.auth_seq_num"] = FINAL_RES_NUM_for_df_pdbx_nonpoly_scheme_auth_final
     except KeyError:
         try:
