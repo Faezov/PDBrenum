@@ -133,7 +133,10 @@ def master_mmCIF_renumber_function(input_mmCIF_files_were_found, default_input_p
         renum_struct_ref_seq_pdbx_auth_seq_align(mmcif_dict)
 
         # just out out.cif
-        output_with_this_name_ending(".cif", default_output_path_to_mmCIF, mmcif_dict, mmCIF_name=mmCIF_name,
-                                     gzip_mode=gzip_mode, current_directory=current_directory)
+        try:
+            output_with_this_name_ending(".cif", default_output_path_to_mmCIF, mmcif_dict, mmCIF_name=mmCIF_name,
+                                         gzip_mode=gzip_mode, current_directory=current_directory)
+        except IndexError:
+            return "IndErr: " + mmCIF_name
 
         return mod_log_message
