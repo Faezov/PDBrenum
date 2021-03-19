@@ -1,4 +1,7 @@
 from src.download.modules import *
+
+# IMPORTANT!!! Check your network connection: Wi-Fi or Wired Ethernet
+
 # from src.download.catalogdownloader import catalog_downloader
 # from src.download.latestcatreader import latest_catalog_reader
 # from src.download.lookfilesinside import look_what_is_inside
@@ -21,14 +24,17 @@ def download_pdb_assemblies_list_with_lxml():
         wwpdb = "https://ftp.wwpdb.org/pub/pdb/data/biounit/PDB/all/"
         links = set()
         try:
-            with session.get(wwpdb, stream=True, timeout=100) as r:
+            with session.get(wwpdb, stream=True, timeout=600) as r:
                 dom = html.fromstring(r.content)
                 for link in dom.xpath('//a/@href'):
                     if ".gz" in link:
                         links.add(wwpdb + link)
             return links
-        except requests.exceptions.RequestException:
-            pass
+
+        except requests.exceptions.RequestException as err:
+            print(err)
+            print("Will try again in 5 seconds...")
+            time.sleep(5)
 
 
 def url_formation_for_pool(format_to_download="mmCIF", list_of_file_names=(),
@@ -95,55 +101,63 @@ def download_with_pool(urls_to_target_files=(),
                        default_input_path_to_SIFTS=current_directory + "/SIFTS",
                        default_input_path_to_mmCIF_assembly=current_directory + "/mmCIF_assembly",
                        default_input_path_to_PDB_assembly=current_directory + "/PDB_assembly"):
-    try:
-        file_name_start_pos = urls_to_target_files.rfind("/") + 1
-        format_start_pos = file_name_start_pos - 4
-        file_name = urls_to_target_files[file_name_start_pos:]
-        format_of_db = urls_to_target_files[format_start_pos:format_start_pos + 3]
+    for _ in range(3):
+        try:
+            file_name_start_pos = urls_to_target_files.rfind("/") + 1
+            format_start_pos = file_name_start_pos - 4
+            file_name = urls_to_target_files[file_name_start_pos:]
+            format_of_db = urls_to_target_files[format_start_pos:format_start_pos + 3]
 
-        r = requests.get(urls_to_target_files, stream=True)
+            r = requests.get(urls_to_target_files, stream=True, timeout=600)
 
-        if format_of_db == "CIF":
-            if r.status_code == requests.codes.ok:
-                with open(default_input_path_to_mmCIF + "/" + file_name, 'wb') as f:
-                    for data in r:
-                        f.write(data)
+            if format_of_db == "CIF":
+                if r.status_code == requests.codes.ok:
+                    with open(default_input_path_to_mmCIF + "/" + file_name, 'wb') as f:
+                        for data in r:
+                            f.write(data)
 
-        if format_of_db == "pdb":
-            if r.status_code == requests.codes.ok:
-                with open(default_input_path_to_PDB + "/" + file_name, 'wb') as f:
-                    for data in r:
-                        f.write(data)
+            if format_of_db == "pdb":
+                if r.status_code == requests.codes.ok:
+                    with open(default_input_path_to_PDB + "/" + file_name, 'wb') as f:
+                        for data in r:
+                            f.write(data)
 
-        if format_of_db == "xml":
-            if r.status_code == requests.codes.ok:
-                with open(default_input_path_to_SIFTS + "/" + file_name, 'wb') as f:
-                    for data in r:
-                        f.write(data)
+            if format_of_db == "xml":
+                if r.status_code == requests.codes.ok:
+                    with open(default_input_path_to_SIFTS + "/" + file_name, 'wb') as f:
+                        for data in r:
+                            f.write(data)
 
-        if format_of_db == "all":
-            if r.status_code == requests.codes.ok:
-                with open(default_input_path_to_PDB_assembly + "/" + file_name, 'wb') as f:
-                    for data in r:
-                        f.write(data)
+            if format_of_db == "all":
+                if r.status_code == requests.codes.ok:
+                    with open(default_input_path_to_PDB_assembly + "/" + file_name, 'wb') as f:
+                        for data in r:
+                            f.write(data)
 
-        if format_of_db == "try":
-            if r.status_code == requests.codes.ok:
-                root = ET.fromstring(r.text)
-                for n in root:
-                    compos_ID_list = list(n.attrib.items())
-                    if compos_ID_list[1][0] == "id":
-                        req_child = requests.get(
-                            "https://www.ebi.ac.uk/pdbe/static/entry/" + file_name[0:4] + "-assembly-" + compos_ID_list[1][1] + ".cif.gz",
-                            stream=True)
-                        if req_child.status_code == requests.codes.ok:
-                            with open(default_input_path_to_mmCIF_assembly + "/" + file_name[0:4] + "-assembly-" + compos_ID_list[1][1] + ".cif.gz",
-                                      'wb') as f:
-                                for data in req_child:
-                                    f.write(data)
+            if format_of_db == "try":
+                if r.status_code == requests.codes.ok:
+                    root = ET.fromstring(r.text)
+                    for n in root:
+                        compos_ID_list = list(n.attrib.items())
+                        if compos_ID_list[1][0] == "id":
+                            req_child = requests.get(
+                                "https://www.ebi.ac.uk/pdbe/static/entry/" + file_name[0:4] + "-assembly-" + compos_ID_list[1][1] + ".cif.gz",
+                                stream=True)
+                            if req_child.status_code == requests.codes.ok:
+                                with open(
+                                        default_input_path_to_mmCIF_assembly + "/" + file_name[0:4] + "-assembly-" + compos_ID_list[1][1] + ".cif.gz",
+                                        'wb') as f:
+                                    for data in req_child:
+                                        f.write(data)
 
-    except requests.exceptions.RequestException:
-        pass
+        except requests.exceptions.RequestException as err:
+            # print(err)
+            # print("For ", urls_to_target_files)
+            # print("Will try again in 5 seconds...")
+            time.sleep(5)
+            continue
+
+        break
 
 
 def run_downloads_with_ThreadPool(format_to_download="mmCIF", urls_to_target=(),

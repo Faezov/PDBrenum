@@ -13,7 +13,7 @@ def my_hook(t):
 
 
 def downloader_for_catalog_with_urllib(ftp_to_download, where_the_file_goes):
-    socket.setdefaulttimeout(300)
+    socket.setdefaulttimeout(600)
     for _ in range(10):
         try:
             last_slash = ftp_to_download.rsplit('/', 1)[-1]
