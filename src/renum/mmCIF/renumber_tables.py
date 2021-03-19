@@ -2,7 +2,6 @@ from src.download.modules import *
 
 
 def renumber_tables(auth_seq_id, auth_asym_id, auth_comp_id, PDB_ins_code, mmcif_dict, df_final_dropped_dup, default_mmCIF_num, chains_to_change):
-    len(auth_comp_id)
     try:
         PDB_ins_code_list = list()
         # auth_comp_id_list = mmcif_dict[auth_comp_id] for debug only
