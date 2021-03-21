@@ -44,8 +44,8 @@ def try_SIFTS_tree_parser(default_input_path_to_SIFTS, SIFTS_name):
     product_tree_SIFTS = 0
     for _ in range(3):
         try:
-            handle_SIFTS = gzip.open(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name), 'rt')
-            product_tree_SIFTS = SIFTS_tree_parser(handle_SIFTS)
+            product_tree_SIFTS = SIFTS_tree_parser(
+                gzip.open(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name), 'rt'))
             break
         except EOFError:
             os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))
@@ -66,9 +66,7 @@ def try_PDB(default_input_path_to_PDB, PDB):
 
     for _ in range(3):
         try:
-            handle_for_PDB = gzip.open(Path(str(default_input_path_to_PDB) + "/" + PDB), 'rt')
-            handle_reader_for_PDB = handle_for_PDB.read()
-            split = handle_reader_for_PDB.splitlines()
+            split = gzip.open(Path(str(default_input_path_to_PDB) + "/" + PDB), 'rt').read().splitlines()
             break
         except EOFError:
             try:
@@ -496,9 +494,11 @@ def ProcessPool_run_renum_PDB(format_to_download, input_PDB_files_were_found, de
                                                    exception_AccessionIDs=exception_AccessionIDs)
 
     jobs = [executor.submit(partial_master_PDB_renumber_function, pdb_files) for pdb_files in input_PDB_files_were_found]
-    for job in tqdm.tqdm(as_completed(jobs), total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files"):
-        resultus = job.result()
-        resulting.append(resultus)
+    with tqdm.tqdm(total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files") as pbar:
+        for job in tqdm.tqdm(as_completed(jobs), total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files"):
+            result = job.result()
+            resulting.append(result)
+            pbar.update()
 
     return resulting
 

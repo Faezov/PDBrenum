@@ -6,7 +6,8 @@ def try_MMCIF2Dict(default_input_path_to_mmCIF, mmCIF_name):
     mmcif_dict = 0
     for _ in range(3):
         try:
-            mmcif_dict = Bio.PDB.MMCIF2Dict.MMCIF2Dict(gzip.open(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name), 'rt'))
+            mmcif_dict = Bio.PDB.MMCIF2Dict.MMCIF2Dict(
+                gzip.open(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name), 'rt'))
             break
         except EOFError:
             os.remove(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name))

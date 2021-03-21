@@ -7,8 +7,8 @@ def try_SIFTS_tree_parser(default_input_path_to_SIFTS, SIFTS_name):
     product_tree_SIFTS = 0
     for _ in range(3):
         try:
-            handle_SIFTS = gzip.open(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name), 'rt')
-            product_tree_SIFTS = SIFTS_tree_parser(handle_SIFTS)
+            product_tree_SIFTS = SIFTS_tree_parser(
+                gzip.open(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name), 'rt'))
             break
         except EOFError:
             os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))

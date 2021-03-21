@@ -21,8 +21,10 @@ def ProcessPool_run_renum(format_to_download, input_mmCIF_files_were_found,
                                                      exception_AccessionIDs=exception_AccessionIDs)
 
     jobs = [executor.submit(partial_master_mmCIF_renumber_function, mmCIF_files) for mmCIF_files in input_mmCIF_files_were_found]
-    for job in tqdm.tqdm(as_completed(jobs), total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files"):
-        result = job.result()
-        resulting.append(result)
+    with tqdm.tqdm(total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files") as pbar:
+        for job in tqdm.tqdm(as_completed(jobs), total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files"):
+            result = job.result()
+            resulting.append(result)
+            pbar.update()
 
     return resulting
