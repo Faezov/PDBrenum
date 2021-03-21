@@ -20,7 +20,7 @@ The following commands will set up a conda environment for running PDBrenum loca
 ~~~~
 ###### **Running PDBrenum:**
 ~~~~
-Testing PDBrenum:
+Testing PDBrenum (please note that for Windows OS it's just python NOT python3):
 (PDBrenum) $ python3 PDBrenum.py -h
 
 The user can provide PDBids directly as a list of arguments (-rfla --renumber_from_list_of_arguments):
