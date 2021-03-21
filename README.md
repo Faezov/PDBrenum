@@ -23,7 +23,7 @@ The following commands will set up a conda environment for running PDBrenum loca
 Testing PDBrenum (please note that for Windows OS it's just python NOT python3):
 (PDBrenum) $ python3 PDBrenum.py -h
 
-The user can provide PDBids directly as a list of arguments (-rfla --renumber_from_list_of_arguments):
+Users can provide PDBids directly as a list of arguments (-rfla --renumber_from_list_of_arguments):
 (PDBrenum) $ python3 PDBrenum.py -rfla 1d5t 1bxw 2vl3 5e6h -mmCIF
 (PDBrenum) $ python3 PDBrenum.py -rfla 1d5t 1bxw 2vl3 5e6h -PDB
 (PDBrenum) $ python3 PDBrenum.py -rfla 1d5t 1bxw 2vl3 5e6h -mmCIF_assembly
@@ -46,11 +46,11 @@ Note that sometimes on Windows biopython module might be installed incorrectly b
 To resolve this problem simply run: 
 (PDBrenum) $ pip install biopython==1.76
 
-PDBrenum uses multiprocessing by default (it will use all available CPUs) 
+PDBrenum uses multiprocessing (by default it will use all available CPUs) 
 but the usercan set a limit to the numer of CPUs by providing number to -nproc flag:
 "-nproc", "--set_number_of_processes"
 
-The user can also change where input output files will go by using these self-explanatory flags (with absolute paths):
+Users can also change where input output files will go by using these self-explanatory flags (with absolute paths):
 "-sipm", "--set_default_input_path_to_mmCIF"
 "-sipma", "--set_default_input_path_to_mmCIF_assembly"
 "-sipp", "--set_default_input_path_to_PDB"
@@ -72,7 +72,7 @@ default_output_path_to_mmCIF_assembly = current_directory + "/output_mmCIF_assem
 default_output_path_to_PDB = current_directory + "/output_PDB"
 default_output_path_to_PDB_assembly = current_directory + "/output_PDB_assembly"
 
-Also, by default all files gzipped if you want have them unzipped please use: 
+Also, by default all files gzipped if you want to have them unzipped please use: 
 "-offz" or "--set_to_off_mode_gzip"
 
 
