@@ -1,5 +1,5 @@
 from src.download.modules import *
-
+from src.download.lookfilesinside import look_what_is_inside
 # IMPORTANT!!! Check your network connection: Wi-Fi or Wired Ethernet
 
 # from src.download.catalogdownloader import catalog_downloader
@@ -166,19 +166,54 @@ def run_downloads_with_ThreadPool(format_to_download="mmCIF", urls_to_target=(),
                                   default_input_path_to_SIFTS=current_directory + "/SIFTS",
                                   default_input_path_to_mmCIF_assembly=current_directory + "/mmCIF_assembly",
                                   default_input_path_to_PDB_assembly=current_directory + "/PDB_assembly"):
+    for i in range(3):
+        executor = ThreadPoolExecutor()
+        partial_download_with_pool = partial(download_with_pool,
+                                             default_input_path_to_mmCIF=default_input_path_to_mmCIF,
+                                             default_input_path_to_PDB=default_input_path_to_PDB,
+                                             default_input_path_to_SIFTS=default_input_path_to_SIFTS,
+                                             default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
+                                             default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
 
-    executor = ThreadPoolExecutor()
-    partial_download_with_pool = partial(download_with_pool,
-                                         default_input_path_to_mmCIF=default_input_path_to_mmCIF,
-                                         default_input_path_to_PDB=default_input_path_to_PDB,
-                                         default_input_path_to_SIFTS=default_input_path_to_SIFTS,
-                                         default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
-                                         default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+        jobs = [executor.submit(partial_download_with_pool, url) for url in urls_to_target]
 
-    jobs = [executor.submit(partial_download_with_pool, url) for url in urls_to_target]
+        for _ in tqdm.tqdm(as_completed(jobs), total=len(jobs), miniters=1, position=0,
+                           leave=True, desc="Downloading " + format_to_download + " files"):
+            pass
 
-    for _ in tqdm.tqdm(as_completed(jobs), total=len(jobs), position=0, leave=True, desc="Downloading " + format_to_download + " files"):
-        pass
+        files_targeted = list()
+        format_of_db = 0
+        for url in urls_to_target:
+            file_name_start_pos = url.rfind("/") + 1
+            file_name = url[file_name_start_pos:]
+            files_targeted.append(file_name)
+            format_start_pos = file_name_start_pos - 4
+            format_of_db = url[format_start_pos:format_start_pos + 3]
+
+        if format_of_db == "CIF":
+            input_files = look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
+        elif format_of_db == "pdb":
+            input_files = look_what_is_inside('PDB', default_input_path_to_PDB=default_input_path_to_PDB)
+        elif format_of_db == "xml":
+            input_files = look_what_is_inside('SIFTS', default_input_path_to_SIFTS=default_input_path_to_SIFTS)
+        elif format_of_db == "all":
+            input_files = look_what_is_inside('PDB_assembly', default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
+        elif format_of_db == "try":
+            input_files = look_what_is_inside('mmCIF_assembly', default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
+        else:
+            input_files = list()
+
+        check_if_all_files_in = False
+        for files_in in files_targeted:
+            if files_in in input_files:
+                pass
+            else:
+                check_if_all_files_in = True
+
+        if check_if_all_files_in:
+            urls_to_target = list(set(files_targeted) - set(input_files))
+        else:
+            break
 
 
 # if __name__ == '__main__':

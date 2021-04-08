@@ -3,6 +3,21 @@ from src.renum.shared.handling_chain_numbering_clashes import handling_chain_num
 from src.renum.shared.SIFTS_tree_parser import SIFTS_tree_parser
 from src.renum.shared.renumbered_count_in_chains import renumbered_count_in_chains
 from src.download.downloadwithThreadPool import download_with_pool, url_formation_for_pool
+PDBrenum_REMARK = [
+    "REMARK   0  File processed by PDBrenum: http://dunbrack3.fccc.edu/PDBrenum      ",
+    "REMARK   0  Author sequence numbering is replaced with UniProt numbering        ",
+    "REMARK   0  according to alignment by SIFTS                                     ",
+    "REMARK   0  (https://www.ebi.ac.uk/pdbe/docs/sifts/).                           ",
+    "REMARK   0  Only chains with UniProt sequences in SIFTS are renumbered.         ",
+    "REMARK   0  Residues in UniProt chains without UniProt residue numbers in SIFTS ",
+    "REMARK   0  (e.g., sequence tags) are given residue numbers 5000+label_seq_id   ",
+    "REMARK   0  (where label_seq_id is the 1-to-N residue numbering of each chain.  ",
+    "REMARK   0  Ligands are numbered 5000+their residue number in the original      ",
+    "REMARK   0  file. The _poly_seq_scheme table contains a correspondence between  ",
+    "REMARK   0  the 1-to-N sequence (seq_id), the new numbering based on UniProt    ",
+    "REMARK   0  (pdb_seq_num = auth_seq_id in the _atom_site records), and          ",
+    "REMARK   0  the author numbering in the original mmCIF file from the PDB        ",
+    "REMARK   0  (auth_seq_num).                                                     "]
 
 
 def SIFTS_data_parser_for_PDB(tuple_PDBe_for_PDB_and_tuple_PDB, tuple_PDBe_for_UniProt_and_tuple_UniProt,
@@ -464,6 +479,16 @@ def master_PDB_renumber_function(input_PDB_files_were_found, default_input_path_
         dict_for_replacement = final_dict_formation(df_final_poly_corrected, df_final_nonpoly_corrected, final_remark_465, chains_to_change)
 
         outF = open(Path(str(default_output_path_to_PDB) + "/" + PDB_id + ".pdb" + assembly_num), "w")
+        # PDBrenum REMARK 0 insert
+        start_remark_0 = 0
+        for lines in split:
+            if lines.startswith("HEADER"):
+                start_remark_0 += 1
+            else:
+                split = split[:start_remark_0] + PDBrenum_REMARK + split[start_remark_0:]
+                break
+
+        # actual renumbering
         for lines in split:
             lines = replace_all(lines, dict_for_replacement)
             outF.write(lines)
@@ -494,11 +519,11 @@ def ProcessPool_run_renum_PDB(format_to_download, input_PDB_files_were_found, de
                                                    exception_AccessionIDs=exception_AccessionIDs)
 
     jobs = [executor.submit(partial_master_PDB_renumber_function, pdb_files) for pdb_files in input_PDB_files_were_found]
-    with tqdm.tqdm(total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files") as pbar:
-        for job in tqdm.tqdm(as_completed(jobs), total=len(jobs), position=0, leave=True, desc="Renumbering " + format_to_download + " files"):
-            result = job.result()
-            resulting.append(result)
-            pbar.update()
+
+    for job in tqdm.tqdm(as_completed(jobs), total=len(jobs), position=0, miniters=1,
+                         leave=True, desc="Renumbering " + format_to_download + " files"):
+        result = job.result()
+        resulting.append(result)
 
     return resulting
 

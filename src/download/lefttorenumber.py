@@ -5,21 +5,23 @@ from src.download.lookfilesinside import look_what_is_inside
 def left_to_renumber_mmCIF(default_input_path_to_mmCIF=current_directory + "/mmCIF",
                            default_output_path_to_mmCIF=current_directory + "/output_mmCIF"):
     without_already_renumbered_mmCIF = list()
-    output_mmCIF_files_were_found_4Char = set()
-    input_mmCIF_files_were_found_4Char = set()
+    # output_mmCIF_files_were_found_4Char = set()
+    # input_mmCIF_files_were_found_4Char = set()
+    output_mmCIF_files_were_found_set = set()
+    input_mmCIF_files_were_found_set = set()
 
     mmCIF_files_were_found = look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
     output_mmCIF_files_were_found = look_what_is_inside("output_mmCIF", default_output_path_to_mmCIF=default_output_path_to_mmCIF)
 
     for output_mmCIF_file in output_mmCIF_files_were_found:
-        output_mmCIF_files_were_found_4Char.add(output_mmCIF_file[:4])
+        output_mmCIF_files_were_found_set.add(output_mmCIF_file)
     for input_mmCIF_file in mmCIF_files_were_found:
-        input_mmCIF_files_were_found_4Char.add(input_mmCIF_file[:4])
+        input_mmCIF_files_were_found_set.add(input_mmCIF_file)
 
-    set_difference = input_mmCIF_files_were_found_4Char - output_mmCIF_files_were_found_4Char
+    set_difference = input_mmCIF_files_were_found_set - output_mmCIF_files_were_found_set
 
     for mmCIF_file in mmCIF_files_were_found:
-        if mmCIF_file[:4] in set_difference:
+        if mmCIF_file in set_difference:
             without_already_renumbered_mmCIF.append(mmCIF_file)
 
     return without_already_renumbered_mmCIF

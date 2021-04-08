@@ -16,9 +16,8 @@ from src.download.lookfilesinside import look_what_is_inside
 from src.download.downloadwithThreadPool import run_downloads_with_ThreadPool, url_formation_for_pool, download_pdb_assemblies_list_with_lxml
 
 from src.renum.PDB.new_PDB import ProcessPool_run_renum_PDB
-from src.renum.mmCIF.ProcessPool_run_renum import ProcessPool_run_renum
 from src.renum.shared.write_log import log_writer
-from src.renum.shared.ProccessPoolReformAssembly import ProcessPool_run_reform_assembly
+from src.renum.mmCIF.ProcessPool_run_renum_mmCIF import ProcessPool_run_renum_mmCIF
 
 
 # current_directory = os.getcwd()
@@ -200,9 +199,9 @@ if __name__ == "__main__":
                 if file_name[:4] in passed_as_arg_file_4Char_mmCIF:
                     target_files_list_mmCIF.append(file_name)
 
-            ProcessPool_run_renum("mmCIF_assembly", target_files_list_mmCIF, default_input_path_to_mmCIF_assembly, default_input_path_to_SIFTS,
-                                  default_output_path_to_mmCIF_assembly, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            ProcessPool_run_renum_mmCIF("mmCIF_assembly", target_files_list_mmCIF, default_input_path_to_mmCIF_assembly,
+                                        default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                        gzip_mode, exception_AccessionIDs, nproc)
 
             # renum mmCIF
             input_mmCIF_files_were_found = look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
@@ -213,8 +212,8 @@ if __name__ == "__main__":
             for file_name in input_mmCIF_files_were_found:
                 if file_name[:4] in passed_as_arg_file_4Char_mmCIF:
                     target_files_list_mmCIF.append(file_name)
-            res = ProcessPool_run_renum("mmCIF", target_files_list_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            res = ProcessPool_run_renum_mmCIF("mmCIF", target_files_list_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                              default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
             # renum PDB_assembly
@@ -307,9 +306,10 @@ if __name__ == "__main__":
 
             if not os.path.exists(default_output_path_to_mmCIF_assembly):
                 os.makedirs(default_output_path_to_mmCIF_assembly)
-            res = ProcessPool_run_renum("mmCIF_assembly", target_files_list, default_input_path_to_mmCIF_assembly, default_input_path_to_SIFTS,
-                                        default_output_path_to_mmCIF_assembly, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+
+            res = ProcessPool_run_renum_mmCIF("mmCIF_assembly", target_files_list, default_input_path_to_mmCIF_assembly,
+                                              default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                              gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
         else:
@@ -330,8 +330,8 @@ if __name__ == "__main__":
 
             if not os.path.exists(default_output_path_to_mmCIF):
                 os.makedirs(default_output_path_to_mmCIF)
-            res = ProcessPool_run_renum("mmCIF", target_files_list, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            res = ProcessPool_run_renum_mmCIF("mmCIF", target_files_list, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                              default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
     # DOWNLOAD
@@ -407,8 +407,8 @@ if __name__ == "__main__":
                                     default_input_path_to_SIFTS=default_input_path_to_SIFTS)
             mmCIF_files_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF,
                                                                   default_output_path_to_mmCIF=default_output_path_to_mmCIF)
-            res = ProcessPool_run_renum("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            res = ProcessPool_run_renum_mmCIF("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                              default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
             # renumber mmCIF_assembly
@@ -416,10 +416,9 @@ if __name__ == "__main__":
                                     default_input_path_to_SIFTS=default_input_path_to_SIFTS)
             mmCIF_assembly_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF_assembly,
                                                                      default_output_path_to_mmCIF=default_output_path_to_mmCIF_assembly)
-            ProcessPool_run_renum("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly,
-                                  default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly,
-                                  default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
-            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            ProcessPool_run_renum_mmCIF("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly,
+                                        default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                        gzip_mode, exception_AccessionIDs, nproc)
 
             # renumber PDB_assembly
             supreme_download_master("PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly,
@@ -468,10 +467,9 @@ if __name__ == "__main__":
                                     default_input_path_to_SIFTS=default_input_path_to_SIFTS)
             mmCIF_assembly_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF_assembly,
                                                                      default_output_path_to_mmCIF=default_output_path_to_mmCIF_assembly)
-            res = ProcessPool_run_renum("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly,
-                                        default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
-                                        gzip_mode, exception_AccessionIDs, nproc)
-            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            res = ProcessPool_run_renum_mmCIF("mmCIF_assembly", mmCIF_assembly_left_to_renumber, default_input_path_to_mmCIF_assembly,
+                                              default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                              gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
         else:
@@ -481,8 +479,8 @@ if __name__ == "__main__":
                                     default_input_path_to_SIFTS=default_input_path_to_SIFTS)
             mmCIF_files_left_to_renumber = left_to_renumber_mmCIF(default_input_path_to_mmCIF=default_input_path_to_mmCIF,
                                                                   default_output_path_to_mmCIF=default_output_path_to_mmCIF)
-            res = ProcessPool_run_renum("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+            res = ProcessPool_run_renum_mmCIF("mmCIF", mmCIF_files_left_to_renumber, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                              default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
     # DOWNLOAD ENTIRE DB
@@ -539,12 +537,13 @@ if __name__ == "__main__":
                                       default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
             ProcessPool_run_renum_PDB("PDB", left_to_refresh_PDB, default_input_path_to_PDB, default_input_path_to_SIFTS, default_output_path_to_PDB,
                                       default_PDB_num, gzip_mode, exception_AccessionIDs, nproc)
-            ProcessPool_run_renum("mmCIF_assembly", lefttodownload_mmCIF_assemblies, default_input_path_to_mmCIF_assembly,
-                                  default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
-                                  gzip_mode, exception_AccessionIDs, nproc)
-            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
-            res = ProcessPool_run_renum("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+
+            ProcessPool_run_renum_mmCIF("mmCIF_assembly", lefttodownload_mmCIF_assemblies, default_input_path_to_mmCIF_assembly,
+                                        default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                        gzip_mode, exception_AccessionIDs, nproc)
+
+            res = ProcessPool_run_renum_mmCIF("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                              default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
         elif args.PDB_assembly_format_only:
@@ -574,10 +573,9 @@ if __name__ == "__main__":
                                                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly,
                                                                      default_input_path_to_SIFTS=default_input_path_to_SIFTS)
 
-            res = ProcessPool_run_renum("mmCIF_assembly", left_to_refresh_mmCIF_assembly, default_input_path_to_mmCIF_assembly,
-                                        default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
-                                        gzip_mode, exception_AccessionIDs, nproc)
-            ProcessPool_run_reform_assembly(default_output_path_to_mmCIF_assembly, current_directory)
+            res = ProcessPool_run_renum_mmCIF("mmCIF_assembly", left_to_refresh_mmCIF_assembly, default_input_path_to_mmCIF_assembly,
+                                              default_input_path_to_SIFTS, default_output_path_to_mmCIF_assembly, default_mmCIF_num,
+                                              gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
 
         else:
@@ -585,6 +583,7 @@ if __name__ == "__main__":
             print("Please, be patient...")
             left_to_refresh_mmCIF = supreme_download_master("mmCIF", "refresh", default_input_path_to_mmCIF=default_input_path_to_mmCIF,
                                                             default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-            res = ProcessPool_run_renum("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
-                                        default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
+
+            res = ProcessPool_run_renum_mmCIF("mmCIF", left_to_refresh_mmCIF, default_input_path_to_mmCIF, default_input_path_to_SIFTS,
+                                              default_output_path_to_mmCIF, default_mmCIF_num, gzip_mode, exception_AccessionIDs, nproc)
             log_writer(res)
