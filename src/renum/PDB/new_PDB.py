@@ -497,7 +497,7 @@ def master_PDB_renumber_function(input_PDB_files_were_found, default_input_path_
 
         if gzip_mode == "on":
             with open(Path(str(default_output_path_to_PDB) + "/" + PDB_id + ".pdb" + assembly_num), 'rb') as f_in:
-                with gzip.open(Path(str(default_output_path_to_PDB) + "/" + PDB_id + ".pdb" + assembly_num + ".gz"), 'wb') as f_out:
+                with gzip.open(Path(str(default_output_path_to_PDB) + "/" + PDB_id + "_renum.pdb" + assembly_num + ".gz"), 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
             os.remove(Path(str(default_output_path_to_PDB) + "/" + PDB_id + ".pdb" + assembly_num))
 

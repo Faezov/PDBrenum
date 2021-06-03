@@ -10,6 +10,24 @@ from src.renum.mmCIF.if_no_SIFTS_data_log import if_no_SIFTS_data_log
 from src.renum.mmCIF.output_with_this_name_ending import output_with_this_name_ending
 from src.renum.mmCIF.try_MMCIF2Dict import try_MMCIF2Dict
 
+REMARK_mmCIF = ["#\n",
+                "loop_\n",
+                "_database_PDB_remark.id       1\n",
+                "_database_PDB_remark.text\n",
+                ";File processed by PDBrenum: http://dunbrack3.fccc.edu/PDBrenum\n",
+                "Author sequence numbering is replaced with UniProt numbering according to\n",
+                "alignment by SIFTS (https://www.ebi.ac.uk/pdbe/docs/sifts/).\n",
+                "Only chains with UniProt sequences in SIFTS are renumbered.\n",
+                "Residues in UniProt chains without UniProt residue numbers in SIFTS\n",
+                "(e.g., sequence tags) are given residue numbers 50000+label_seq_id\n",
+                "(where label_seq_id is the 1-to-N residue numbering of each chain.\n",
+                "Ligands are numbered 50000+their residue number in the original file.\n",
+                "The _poly_seq_scheme table contains a correspondence between the\n",
+                "1-to-N sequence (seq_id), the new numbering based on UniProt (pdb_seq_num =\n",
+                "auth_seq_id in the _atom_site records), and the author numbering\n",
+                "in the original mmCIF file from the PDB (auth_seq_num).\n",
+                ";\n",
+                "#\n"]
 
 def renum_struct_ref_seq_pdbx_auth_seq_align(mmcif_dict):
     try:
@@ -652,7 +670,7 @@ def master_mmCIF_renumber_function(input_mmCIF_file_were_found, default_input_pa
         renumber_tables(formed_columns, mmcif_dict, poly_nonpoly_atom_site, chains_to_change, default_mmCIF_num)
 
         try:
-            output_with_this_name_ending(".cif", default_output_path_to_mmCIF, mmcif_dict, mmCIF_name=mmCIF_name,
+            output_with_this_name_ending("_renum.cif", default_output_path_to_mmCIF, mmcif_dict, mmCIF_name=mmCIF_name,
                                          gzip_mode=gzip_mode, current_directory=current_directory)
             return mod_log_message
 
