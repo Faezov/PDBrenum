@@ -18,7 +18,8 @@ from src.download.downloadwithThreadPool import run_downloads_with_ThreadPool, u
 from src.renum.PDB.new_PDB import ProcessPool_run_renum_PDB
 from src.renum.shared.write_log import log_writer
 from src.renum.mmCIF.ProcessPool_run_renum_mmCIF import ProcessPool_run_renum_mmCIF
-
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 current_directory = os.getcwd()
 exception_AccessionIDs = ["P42212", "Q17104", "Q27903", "Q93125", "P03069", "D3DLN9", "Q96UT3", "P0ABE7", "P00192",
