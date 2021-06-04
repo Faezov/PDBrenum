@@ -8,6 +8,8 @@ def handling_chain_numbering_clashes(df_PDBe_PDB_UniProt, exception_AccessionIDs
     chain_AccessionID_dict = dict()
 
     for PDBe_num_UniProt_PDB_accession in df_PDBe_PDB_UniProt["Three_Rows_CIF_Num_Uni"]:
+        if type(PDBe_num_UniProt_PDB_accession[4]) == float:
+            continue
         chains_to_change.add(PDBe_num_UniProt_PDB_accession[3][2])
         chains_to_change_one_to_end.add(PDBe_num_UniProt_PDB_accession[2][2])
         AccessionIDs.add(PDBe_num_UniProt_PDB_accession[4])

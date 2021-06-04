@@ -402,13 +402,13 @@ def master_PDB_renumber_function(input_PDB_files_were_found, default_input_path_
         try:
             gzip.open(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name), 'rt')
         except FileNotFoundError:
-            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, ".pdb" + assembly_num, gzip_mode)
+            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, "_renum.pdb" + assembly_num, gzip_mode)
             log_message = if_no_SIFTS_data_log_for_PDB(default_input_path_to_PDB, PDB_id, PDB)
             return log_message
 
         # for zero byte SIFTS
         if os.path.getsize(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name)) == 0:
-            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, ".pdb" + assembly_num, gzip_mode)
+            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, "_renum.pdb" + assembly_num, gzip_mode)
             log_message = if_no_SIFTS_data_log_for_PDB(default_input_path_to_PDB, PDB_id, PDB)
             return log_message
 
@@ -422,7 +422,7 @@ def master_PDB_renumber_function(input_PDB_files_were_found, default_input_path_
 
         # for no UniProt in SIFTS
         if len(tuple_PDBe_for_UniProt_and_tuple_UniProt) == 0:
-            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, ".pdb" + assembly_num, gzip_mode)
+            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, "_renum.pdb" + assembly_num, gzip_mode)
             log_message = if_no_SIFTS_data_log_for_PDB(default_input_path_to_PDB, PDB_id, PDB)
             return log_message
 
@@ -455,7 +455,7 @@ def master_PDB_renumber_function(input_PDB_files_were_found, default_input_path_
         mod_log_message = chain_total_renum
 
         if nothing_changed == 0:
-            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, ".pdb" + assembly_num, gzip_mode)
+            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, "_renum.pdb" + assembly_num, gzip_mode)
             return mod_log_message
 
         parsed_PDB = PDB_parser(split, df_PDBe_PDB_UniProt_without_null_index_PDBe, default_PDB_num)
@@ -467,7 +467,7 @@ def master_PDB_renumber_function(input_PDB_files_were_found, default_input_path_
 
         # when numbers get too big
         if not Num_is_Too_Big:
-            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, ".pdb" + assembly_num, gzip_mode)
+            copy_file(default_input_path_to_PDB, PDB, default_output_path_to_PDB, "_renum.pdb" + assembly_num, gzip_mode)
             return mod_log_message
 
         df_final_nonpoly_corrected = non_poly_num(pd_series_index_PDBe, num_ins_code_name_chain_HETATM)

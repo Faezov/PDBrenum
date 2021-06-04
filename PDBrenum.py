@@ -20,9 +20,9 @@ from src.renum.shared.write_log import log_writer
 from src.renum.mmCIF.ProcessPool_run_renum_mmCIF import ProcessPool_run_renum_mmCIF
 
 
-# current_directory = os.getcwd()
-# exception_AccessionIDs = ["P42212", "Q17104", "Q27903", "Q93125", "P03069", "D3DLN9", "Q96UT3", "P0ABE7", "P00192",
-#                           "P76805", "Q8XCE3", "P00720", "Q38170", "Q94N07", "P0AEX9", "P02928", "Q2M6S0"]
+current_directory = os.getcwd()
+exception_AccessionIDs = ["P42212", "Q17104", "Q27903", "Q93125", "P03069", "D3DLN9", "Q96UT3", "P0ABE7", "P00192",
+                          "P76805", "Q8XCE3", "P00720", "Q38170", "Q94N07", "P0AEX9", "P02928", "Q2M6S0"]
 
 # IMPORTANT!!! Check your network connection: Wi-Fi or Wired Ethernet
 

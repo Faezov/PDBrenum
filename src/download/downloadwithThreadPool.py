@@ -151,9 +151,6 @@ def download_with_pool(urls_to_target_files=(),
                                         f.write(data)
 
         except requests.exceptions.RequestException as err:
-            # print(err)
-            # print("For ", urls_to_target_files)
-            # print("Will try again in 5 seconds...")
             time.sleep(5)
             continue
 
@@ -201,18 +198,34 @@ def run_downloads_with_ThreadPool(format_to_download="mmCIF", urls_to_target=(),
         elif format_of_db == "try":
             input_files = look_what_is_inside('mmCIF_assembly', default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
         else:
-            input_files = list()
+            input_files = set()
 
-        check_if_all_files_in = False
-        for files_in in files_targeted:
-            if files_in in input_files:
-                pass
+        # check_if_all_files_in = False
+        #
+        # for files_in in files_targeted:
+        #     if files_in in input_files:
+        #         pass
+        #     else:
+        #         check_if_all_files_in = True
+        #
+        # if check_if_all_files_in:
+        #     urls_to_target = list(set(files_targeted) - set(input_files))
+        # else:
+        #     break
+
+        output_4char = set()
+        for n in input_files:
+            output_4char.add(n[:4])
+
+        new_round_files_targeted = set()
+        for n in files_targeted:
+            if n[:4] in output_4char:
+                continue
             else:
-                check_if_all_files_in = True
+                new_round_files_targeted.add(n)
+        files_targeted = new_round_files_targeted
 
-        if check_if_all_files_in:
-            urls_to_target = list(set(files_targeted) - set(input_files))
-        else:
+        if len(files_targeted) == 0:
             break
 
 

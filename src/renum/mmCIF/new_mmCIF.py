@@ -2,32 +2,102 @@ from src.download.modules import *
 
 from src.renum.shared.handling_chain_numbering_clashes import handling_chain_numbering_clashes
 from src.renum.shared.renumbered_count_in_chains import renumbered_count_in_chains
-from src.renum.shared.try_SIFTS_tree_parser import try_SIFTS_tree_parser
+from src.download.downloadwithThreadPool import download_with_pool, url_formation_for_pool
+from src.download import compressor
 
-from src.renum.mmCIF.SIFTS_data_parser_for_mmCIF import SIFTS_data_parser_for_mmCIF
-from src.renum.mmCIF.copy_file import copy_file
-from src.renum.mmCIF.if_no_SIFTS_data_log import if_no_SIFTS_data_log
-from src.renum.mmCIF.output_with_this_name_ending import output_with_this_name_ending
-from src.renum.mmCIF.try_MMCIF2Dict import try_MMCIF2Dict
 
-REMARK_mmCIF = ["#\n",
-                "loop_\n",
-                "_database_PDB_remark.id       1\n",
-                "_database_PDB_remark.text\n",
-                ";File processed by PDBrenum: http://dunbrack3.fccc.edu/PDBrenum\n",
-                "Author sequence numbering is replaced with UniProt numbering according to\n",
-                "alignment by SIFTS (https://www.ebi.ac.uk/pdbe/docs/sifts/).\n",
-                "Only chains with UniProt sequences in SIFTS are renumbered.\n",
-                "Residues in UniProt chains without UniProt residue numbers in SIFTS\n",
-                "(e.g., sequence tags) are given residue numbers 50000+label_seq_id\n",
-                "(where label_seq_id is the 1-to-N residue numbering of each chain.\n",
-                "Ligands are numbered 50000+their residue number in the original file.\n",
-                "The _poly_seq_scheme table contains a correspondence between the\n",
-                "1-to-N sequence (seq_id), the new numbering based on UniProt (pdb_seq_num =\n",
-                "auth_seq_id in the _atom_site records), and the author numbering\n",
-                "in the original mmCIF file from the PDB (auth_seq_num).\n",
-                ";\n",
-                "#\n"]
+def try_MMCIF2Dict(default_input_path_to_mmCIF, mmCIF_name):
+    mmcif_dict = 0
+    for _ in range(3):
+        try:
+            mmcif_dict = Bio.PDB.MMCIF2Dict.MMCIF2Dict(gzip.open(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name), 'rt'))
+            break
+        except EOFError:
+            os.remove(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name))
+            if "assembly" in mmCIF_name:
+                download_with_pool(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
+            else:
+                download_with_pool(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
+        except ValueError:
+            os.remove(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name))
+            if "assembly" in mmCIF_name:
+                download_with_pool(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
+            else:
+                download_with_pool(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
+        except OSError:
+            if "assembly" in mmCIF_name:
+                download_with_pool(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
+            else:
+                download_with_pool(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
+    return mmcif_dict
+
+
+def try_SIFTS_tree_parser(default_input_path_to_SIFTS, SIFTS_name):
+    product_tree_SIFTS = 0
+    for _ in range(3):
+        try:
+            handle_SIFTS = gzip.open(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name), 'rt')
+            product_tree_SIFTS = SIFTS_tree_parser(handle_SIFTS)
+            break
+        except EOFError:
+            os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))
+            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+        except ValueError:
+            os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))
+            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+        except OSError:
+            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+        except Exception:
+            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+    return product_tree_SIFTS
+
+
+def output_with_this_name_ending(name_ending, path, mmcif_dict, mmCIF_name, gzip_mode, current_directory):
+    mmCIF_name = mmCIF_name[:mmCIF_name.rfind(".cif.gz")]
+    os.chdir(path)
+    io = MMCIFIO()
+    io.set_dict(mmcif_dict)
+    io.save(mmCIF_name + name_ending)
+    if gzip_mode == "on":
+        compressor.compress_output_files(mmCIF_name + name_ending, gzip_mode)
+        os.remove(mmCIF_name + name_ending)
+    os.chdir(current_directory)
+
+
+def copy_file(inpath, file_name, outpath, postfix, gzip_mode):
+    mmCIF_name = file_name[:file_name.rfind(".cif.gz")]
+    absolute_path_in = inpath + "/" + file_name
+    absolute_path_out = outpath + "/" + mmCIF_name + postfix
+    if gzip_mode == "off":
+        with gzip.open(absolute_path_in, 'rb') as f_in:
+            with open(absolute_path_out[:-3], 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+    else:
+        shutil.copyfile(absolute_path_in, absolute_path_out)
+
+
+def if_no_SIFTS_data_log(mmCIF_name, mmcif_dict, log_message):
+    strand_id_set = set()
+    try:
+        pull_chains_for_chains_count = mmcif_dict["_pdbx_poly_seq_scheme.pdb_strand_id"]
+    except KeyError:
+        try:
+            pull_chains_for_chains_count = mmcif_dict["_pdbe_orig_poly_seq_scheme.pdb_strand_id"]
+        except KeyError:
+            pull_chains_for_chains_count = mmcif_dict["_atom_site.auth_asym_id"]
+
+    for strand in pull_chains_for_chains_count:
+        strand_id_set.add(strand)
+    strand_id_set = list(strand_id_set)
+    strand_id_set.sort()
+    for strand in strand_id_set:
+        count_elements_in_strand = 0
+        for chain_id in pull_chains_for_chains_count:
+            if chain_id == strand:
+                count_elements_in_strand += 1
+        log_message.append([mmCIF_name[:4], strand, "-", "-", "-", "-", count_elements_in_strand, "0", "0"])
+    return log_message
+
 
 def renum_struct_ref_seq_pdbx_auth_seq_align(mmcif_dict):
     try:
@@ -83,9 +153,9 @@ def poly_nonpoly_renum(mmcif_dict, df_PDBe_PDB_UniProt, chains_to_change, defaul
         _pdbx_poly_seq_scheme_pdb_ins_code = mmcif_dict["_pdbx_poly_seq_scheme.pdb_ins_code"]
     except KeyError:
         try:
-            _pdbx_poly_seq_scheme_seq_id = mmcif_dict["_pdbe_orig_nonpoly_scheme.seq_id"]
-            _pdbx_poly_seq_scheme_asym_id = mmcif_dict["_pdbe_orig_nonpoly_scheme.asym_id"]
-            _pdbx_poly_seq_scheme_mon_id = mmcif_dict["_pdbe_orig_nonpoly_scheme.mon_id"]
+            _pdbx_poly_seq_scheme_seq_id = mmcif_dict["_pdbe_orig_poly_seq_scheme.seq_id"]
+            _pdbx_poly_seq_scheme_asym_id = mmcif_dict["_pdbe_orig_poly_seq_scheme.asym_id"]
+            _pdbx_poly_seq_scheme_mon_id = mmcif_dict["_pdbe_orig_poly_seq_scheme.mon_id"]
 
             _pdbx_poly_seq_scheme_pdb_seq_num = mmcif_dict["_pdbe_orig_poly_seq_scheme.pdb_seq_num"]
             _pdbx_poly_seq_scheme_auth_seq_num = mmcif_dict["_pdbe_orig_poly_seq_scheme.auth_seq_num"]
@@ -93,6 +163,7 @@ def poly_nonpoly_renum(mmcif_dict, df_PDBe_PDB_UniProt, chains_to_change, defaul
             _pdbx_poly_seq_scheme_auth_mon_id = mmcif_dict["_pdbe_orig_poly_seq_scheme.auth_mon_id"]
             _pdbx_poly_seq_scheme_pdb_strand_id = mmcif_dict["_pdbe_orig_poly_seq_scheme.pdb_strand_id"]
             _pdbx_poly_seq_scheme_pdb_ins_code = mmcif_dict["_pdbe_orig_poly_seq_scheme.pdb_ins_code"]
+
         except KeyError:
             # continue
             return 0
@@ -144,12 +215,15 @@ def poly_nonpoly_renum(mmcif_dict, df_PDBe_PDB_UniProt, chains_to_change, defaul
         df_pdbx_poly_seq_scheme_pdb_final["PDB_num_and_chain"].apply(lambda x: x[0].strip(re.sub('[0-9\-\?\.]+', '', x[0]))))
 
     try:
-        mmcif_dict["_pdbx_poly_seq_scheme.auth_seq_num"]  # check if key exists
-        mmcif_dict["_pdbx_poly_seq_scheme.auth_seq_num"] = list(df_pdbx_poly_seq_scheme_pdb_final["Uni_or_50k"].values)
+        mmcif_dict["_pdbx_poly_seq_scheme.pdb_seq_num"]  # check if key exists
+        mmcif_dict["_pdbx_poly_seq_scheme.pdb_seq_num"] = list(df_pdbx_poly_seq_scheme_pdb_final["Uni_or_50k"].values)
+        mmcif_dict["_pdbx_poly_seq_scheme.auth_seq_num"] = _pdbx_poly_seq_scheme_pdb_seq_num
     except KeyError:
-        mmcif_dict["_pdbe_orig_poly_seq_scheme.auth_seq_num"] = list(df_pdbx_poly_seq_scheme_pdb_final["Uni_or_50k"].values)
+        mmcif_dict["_pdbe_orig_poly_seq_scheme.pdb_seq_num"] = list(df_pdbx_poly_seq_scheme_pdb_final["Uni_or_50k"].values)
+        mmcif_dict["_pdbe_orig_poly_seq_scheme.auth_seq_num"] = _pdbx_poly_seq_scheme_pdb_seq_num
 
     nonpoly_present = False
+
     try:
         _pdbx_nonpoly_scheme_pdb_seq_num = mmcif_dict["_pdbx_nonpoly_scheme.pdb_seq_num"]
         _pdbx_nonpoly_scheme_auth_seq_num = mmcif_dict["_pdbx_nonpoly_scheme.auth_seq_num"]
@@ -205,11 +279,13 @@ def poly_nonpoly_renum(mmcif_dict, df_PDBe_PDB_UniProt, chains_to_change, defaul
             lambda x: str(int(x[0]) + default_mmCIF_num + 10000) if x[2] in chains_to_change else x[0])
 
         try:
-            mmcif_dict["_pdbx_nonpoly_scheme.auth_seq_num"]  # check if key exists
-            mmcif_dict["_pdbx_nonpoly_scheme.auth_seq_num"] = list(df_mmCIF_pdbx_nonpoly_scheme["Uni_or_50k"].values)
+            mmcif_dict["_pdbx_nonpoly_scheme.pdb_seq_num"]  # check if key exists
+            mmcif_dict["_pdbx_nonpoly_scheme.pdb_seq_num"] = list(df_mmCIF_pdbx_nonpoly_scheme["Uni_or_50k"].values)
+            mmcif_dict["_pdbx_nonpoly_scheme.auth_seq_num"] = _pdbx_nonpoly_scheme_pdb_seq_num
         except KeyError:
             try:
-                mmcif_dict["_pdbe_orig_nonpoly_scheme.auth_seq_num"] = list(df_mmCIF_pdbx_nonpoly_scheme["Uni_or_50k"].values)
+                mmcif_dict["_pdbe_orig_nonpoly_scheme.pdb_seq_num"] = list(df_mmCIF_pdbx_nonpoly_scheme["Uni_or_50k"].values)
+                mmcif_dict["_pdbe_orig_nonpoly_scheme.auth_seq_num"] = _pdbx_nonpoly_scheme_pdb_seq_num
             except KeyError:
                 pass
 
@@ -225,22 +301,21 @@ def poly_nonpoly_renum(mmcif_dict, df_PDBe_PDB_UniProt, chains_to_change, defaul
 def renumber_tables(formed_columns, mmcif_dict, poly_nonpoly_atom_site, chains_to_change, default_mmCIF_num):
     dot_or_question_tuple = (".", "?")
     for n in formed_columns:
-        # auth_comp_id = 0
+        auth_comp_id = 0
         auth_seq_id = n[0]
         auth_asym_id = n[1]
         try:
             PDB_ins_code = n[2]
             if "ins_code" not in PDB_ins_code:
-                # auth_comp_id = PDB_ins_code
+                auth_comp_id = PDB_ins_code
                 PDB_ins_code = 0
         except IndexError:
             PDB_ins_code = 0
-
-        # try:
-        #     if auth_comp_id == 0:
-        #         auth_comp_id = n[3]
-        # except IndexError:
-        #     auth_comp_id = 0
+        try:
+            if auth_comp_id == 0:
+                auth_comp_id = n[3]
+        except IndexError:
+            auth_comp_id = 0
 
         if "_pdbx_branch_scheme" in auth_seq_id:
             auth_seq_id = "_pdbx_branch_scheme.pdb_seq_num"
@@ -310,7 +385,8 @@ def renumber_tables(formed_columns, mmcif_dict, poly_nonpoly_atom_site, chains_t
                                                                   if x[1] in chains_to_change else str(int(''.join(filter(str.isdigit, str(x[0])))))),
                                                               df_auth_seq_id_list_zip_final["question_mark"].apply(lambda x: x))
         except ValueError:
-            return print("ValueError in table " + auth_seq_id + " has non-numeric value point in file" + mmcif_dict["data_"])
+            # print("ValueError in table " + auth_seq_id + " has non-numeric value point in file " + mmcif_dict["data_"])
+            return print("ValueError in table " + auth_seq_id + " has non-numeric value point in file " + mmcif_dict["data_"])
 
         df_auth_seq_id_list_zip_final["ins_code"] = df_auth_seq_id_list_zip_final["final"].apply(lambda x: "?"
         if re.sub('[0-9]+', '', x).strip("-").strip(".").strip('?') == ""
@@ -366,10 +442,15 @@ def column_formation(mmcif_dict):
                 if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
                         and "auth_seq_id" in key or "auth_seq_num" in key:
                     combinations.append(key)
-                    # chain auth_asym_id or strand_id
-                if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
-                        and "auth_asym_id" in key or "strand_id" in key:
-                    combinations.append(key)
+                # chain auth_asym_id or strand_id
+                if "assembly" in mmcif_dict["data_"]:
+                    if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
+                            and "orig_auth_asym_id" in key:
+                        combinations.append(key)
+                else:
+                    if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
+                            and "auth_asym_id" in key or "strand_id" in key:
+                        combinations.append(key)
                 # ins_code
                 if table_name_prefix_suffix[1] in key and table_name_prefix_suffix[2] in key \
                         and "ins_code" in key:
@@ -488,8 +569,8 @@ def SIFTS_tree_parser(handle_SIFTS):
     UniProt_val_tuple_in_list = list()
     UniProtdbAccessionId_list = list()
     UniProt_conversion_dict = dict()
-    # Human_readable_AccessionID_list = list()
     details_list = list()
+    # Human_readable_AccessionID_list = list()
 
     for entity in root:
         if entity.tag.endswith("entity"):
@@ -516,29 +597,23 @@ def SIFTS_tree_parser(handle_SIFTS):
 
                                 for crossRefDb in residue:
                                     if crossRefDb.tag.endswith("residueDetail") and crossRefDb.text != "Not_Observed":
-                                        details_list.append((("PDBid", root.get("dbAccessionId")), ("Annotation:", crossRefDb.text),
-                                                             (key_val_tuples_in_list_parent[2][1],
-                                                              key_val_tuples_in_list_parent[3][1],
-                                                              entity_chainID_list[1][1])))
+                                        details_list.append((("PDBid", root.get("dbAccessionId")), ("Annotation:", crossRefDb.text), (
+                                            key_val_tuples_in_list_parent[2][1], key_val_tuples_in_list_parent[3][1], entity_chainID_list[1][1])))
 
                                     crossRefDb_list.append(crossRefDb.attrib)
                                     key_val_tuples_in_list_child = list(crossRefDb.attrib.items())
 
                                     if key_val_tuples_in_list_child[0][0] == "dbSource" and key_val_tuples_in_list_child[0][1] == "PDB":
-                                        PDB_val_tuples_in_list.append((key_val_tuples_in_list_child[3][1],
-                                                                       key_val_tuples_in_list_child[4][1],
+                                        PDB_val_tuples_in_list.append((key_val_tuples_in_list_child[3][1], key_val_tuples_in_list_child[4][1],
                                                                        key_val_tuples_in_list_child[5][1]))
-                                        PDBe_val_tuples_in_list_for_PDB.append((key_val_tuples_in_list_parent[2][1],
-                                                                                key_val_tuples_in_list_parent[3][1],
-                                                                                entity_chainID_list[1][1]))
+                                        PDBe_val_tuples_in_list_for_PDB.append(
+                                            (key_val_tuples_in_list_parent[2][1], key_val_tuples_in_list_parent[3][1], entity_chainID_list[1][1]))
 
                                     if key_val_tuples_in_list_child[0][0] == "dbSource" and key_val_tuples_in_list_child[0][1] == "UniProt":
-                                        UniProt_val_tuple_in_list.append((key_val_tuples_in_list_child[3][1],
-                                                                          key_val_tuples_in_list_child[4][1],
-                                                                          entity_chainID_list[1][1]))
-                                        PDBe_val_tuples_in_list_for_Uni.append((key_val_tuples_in_list_parent[2][1],
-                                                                                key_val_tuples_in_list_parent[3][1],
-                                                                                entity_chainID_list[1][1]))
+                                        UniProt_val_tuple_in_list.append(
+                                            (key_val_tuples_in_list_child[3][1], key_val_tuples_in_list_child[4][1], entity_chainID_list[1][1]))
+                                        PDBe_val_tuples_in_list_for_Uni.append(
+                                            (key_val_tuples_in_list_parent[2][1], key_val_tuples_in_list_parent[3][1], entity_chainID_list[1][1]))
                                         UniProtdbAccessionId_list.append(key_val_tuples_in_list_child[2][1])
 
     tuple_PDBe_for_PDB_and_tuple_PDB = list(zip(PDBe_val_tuples_in_list_for_PDB, PDB_val_tuples_in_list))
@@ -649,13 +724,13 @@ def master_mmCIF_renumber_function(input_mmCIF_file_were_found, default_input_pa
                                                       mmCIF_name, UniProt_conversion_dict, longest_AccessionID_list)
         chain_total_renum = renumbered_count[0]
         nothing_changed = renumbered_count[1]
+
         chain_total_renum.append(nothing_changed)
         mod_log_message = chain_total_renum
 
         # for no change needed _no_change_out.cif.gz
         if nothing_changed == 0:
             copy_file(default_input_path_to_mmCIF, mmCIF_name, default_output_path_to_mmCIF, ".cif.gz", gzip_mode)
-
             return mod_log_message
 
         product_of_mmCIF_parser = mmCIF_parser(mmCIF_name, default_input_path_to_mmCIF, df_PDBe_PDB_UniProt_without_null_index_PDBe,
@@ -673,9 +748,7 @@ def master_mmCIF_renumber_function(input_mmCIF_file_were_found, default_input_pa
             output_with_this_name_ending("_renum.cif", default_output_path_to_mmCIF, mmcif_dict, mmCIF_name=mmCIF_name,
                                          gzip_mode=gzip_mode, current_directory=current_directory)
             return mod_log_message
-
         except IndexError:
             # 5olg data swapped columns
             print("IndexError Warning this file is not renumbered:", mmCIF_name)
             copy_file(default_input_path_to_mmCIF, mmCIF_name, default_output_path_to_mmCIF, ".cif.gz", gzip_mode)
-            return mod_log_message

@@ -1,6 +1,8 @@
 from src.download.modules import *
 from src.download.lookfilesinside import look_what_is_inside
 from src.renum.mmCIF.new_mmCIF import master_mmCIF_renumber_function
+
+
 REMARK_mmCIF = ["#\n",
                 "loop_\n",
                 "_database_PDB_remark.id       1\n",
@@ -19,6 +21,7 @@ REMARK_mmCIF = ["#\n",
                 "in the original mmCIF file from the PDB (auth_seq_num).\n",
                 ";\n",
                 "#\n"]
+
 
 def check_assemblies(mmCIF_assembly, default_output_path_to_mmCIF_assembly):
     output_mmCIF_assembly_files_were_found_list = list()
@@ -69,8 +72,22 @@ def check_assemblies(mmCIF_assembly, default_output_path_to_mmCIF_assembly):
                         with open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name), "wt") as file_out:
                             for listitem in new_order_with_remark:
                                 file_out.write(listitem)
-                return name
 
+                else:
+                    new_order_with_remark = list_of_lines_from_assembly_file
+                    if not_gzip != 0:
+                        with gzip.open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name.split(".")[0] + "_renum.cif.gz"),
+                                       "wt") as gzip_out:
+                            for listitem in new_order_with_remark:
+                                gzip_out.write(listitem)
+                        os.remove(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name))
+                    else:
+                        with open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name.split(".")[0] + "_renum.cif"), "wt") as file_out:
+                            for listitem in new_order_with_remark:
+                                file_out.write(listitem)
+                        os.remove(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name))
+
+                return name
 
         except IndexError:
             # empty file
@@ -89,17 +106,29 @@ def check_assemblies(mmCIF_assembly, default_output_path_to_mmCIF_assembly):
                         new_order_with_remark = (new_order_for_assembly_file[:(new_order_for_assembly_file.index(line)) + 1]
                                                  + REMARK_mmCIF
                                                  + new_order_for_assembly_file[(new_order_for_assembly_file.index(line)) + 2:])
+
+                if new_order_with_remark != 0:
+                    if not_gzip != 0:
+                        with gzip.open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name), "wt") as gzip_out:
+                            for listitem in new_order_with_remark:
+                                gzip_out.write(listitem)
+
+                    else:
+                        with open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name), "wt") as file_out:
+                            for listitem in new_order_with_remark:
+                                file_out.write(listitem)
             else:
                 new_order_with_remark = new_order_for_assembly_file
-
-            if not_gzip != 0:
-                with gzip.open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name), "wt") as gzip_out:
-                    for listitem in new_order_with_remark:
-                        gzip_out.write(listitem)
-            else:
-                with open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name), "wt") as file_out:
-                    for listitem in new_order_with_remark:
-                        file_out.write(listitem)
+                if not_gzip != 0:
+                    with gzip.open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name.split(".")[0] + "_renum.cif.gz"), "wt") as gzip_out:
+                        for listitem in new_order_with_remark:
+                            gzip_out.write(listitem)
+                    os.remove(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name))
+                else:
+                    with open(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name.split(".")[0] + "_renum.cif"), "wt") as file_out:
+                        for listitem in new_order_with_remark:
+                            file_out.write(listitem)
+                    os.remove(Path(str(default_output_path_to_mmCIF_assembly) + "/" + name))
             return name
 
         except ValueError:
@@ -172,4 +201,3 @@ def ProcessPool_run_renum_mmCIF(format_mmCIF, mmCIF_to_renumber, default_input_p
             mmCIF_to_renumber = new_round_mmCIF_to_renumber
 
     return first_res
-
