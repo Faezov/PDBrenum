@@ -209,7 +209,7 @@ def run_downloads_with_ThreadPool(format_to_download="mmCIF", urls_to_target=(),
         #         check_if_all_files_in = True
         #
         # if check_if_all_files_in:
-        #     urls_to_target = list(set(files_targeted) - set(input_files))
+        #     urls_to_target = list(set(files_targeted) - set(input_files))c
         # else:
         #     break
 

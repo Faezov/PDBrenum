@@ -25,6 +25,13 @@ current_directory = os.getcwd()
 exception_AccessionIDs = ["P42212", "Q17104", "Q27903", "Q93125", "P03069", "D3DLN9", "Q96UT3", "P0ABE7", "P00192",
                           "P76805", "Q8XCE3", "P00720", "Q38170", "Q94N07", "P0AEX9", "P02928", "Q2M6S0"]
 
+os.environ["HTTPS_PROXY"] = "http://155.247.166.25:8080"
+os.environ["HTTP_PROXY"] = "http://155.247.166.25:8080"
+os.environ["FTP_PROXY"] = "http://155.247.166.25:8080"
+os.environ["https_proxy"] = "http://155.247.166.25:8080"
+os.environ["http_proxy"] = "http://155.247.166.25:8080"
+os.environ["ftp_proxy"] = "http://155.247.166.25:8080"
+
 # IMPORTANT!!! Check your network connection: Wi-Fi or Wired Ethernet
 
 #####################################################################################################################################################

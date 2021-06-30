@@ -48,22 +48,20 @@ def latest_catalog_reader():
             all_PDB_files.append(PDB_file_name)
 
         # SIFTS
-        path_to_the_latest_listing = paths_to_xml_sorted[0]
-
-        df_catalog_the_latest_listing = pd.read_csv(Path(path_to_the_latest_listing),
-                                                    names=["1", "2", "3", "4", "Data_size", "Month", "Day", "Time",
-                                                           "file_name", "10", "file_names_path"], sep="\s+",
-                                                    low_memory=False)
-
-        df_catalog_the_latest_SIFTS_listing_dropna = df_catalog_the_latest_listing.dropna()
-        df_catalog_the_latest_SIFTS_listing_dropna_xml_gz = df_catalog_the_latest_SIFTS_listing_dropna[
-            df_catalog_the_latest_SIFTS_listing_dropna['file_name'].str.endswith('xml.gz')]
-        df_catalog_the_latest_SIFTS_listing_dropna_cif_gz_34kb = df_catalog_the_latest_SIFTS_listing_dropna_xml_gz[
-            df_catalog_the_latest_SIFTS_listing_dropna_xml_gz.Data_size == 27.0]
-
-        all_SIFTS_files = list()
-        for SIFTS_file_name in df_catalog_the_latest_SIFTS_listing_dropna_cif_gz_34kb["file_name"]:
-            all_SIFTS_files.append(SIFTS_file_name)
+        path_to_the_latest_list = paths_to_xml_sorted[0]
+        df_catalog_the_latest_listing = pd.read_csv(path_to_the_latest_list, header=None, sep="\s+", low_memory=False)
+        all_SIFTS_files = set()
+        for key in df_catalog_the_latest_listing:
+            try:
+                if df_catalog_the_latest_listing[key].str.contains(".xml.gz").any():
+                    for val in df_catalog_the_latest_listing[key]:
+                        if val.endswith(".xml.gz"):
+                            if "/" in val:
+                                all_SIFTS_files.add(val.split("/")[-1])
+                            else:
+                                all_SIFTS_files.add(val)
+            except AttributeError:
+                pass
 
     except IndexError:
         print("Sorry, nothing to read from. Try catalog_downloader() command first.")
