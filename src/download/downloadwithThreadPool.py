@@ -108,7 +108,7 @@ def download_with_pool(urls_to_target_files=(),
             file_name = urls_to_target_files[file_name_start_pos:]
             format_of_db = urls_to_target_files[format_start_pos:format_start_pos + 3]
 
-            r = requests.get(urls_to_target_files, stream=True, timeout=600)
+            r = requests.get(urls_to_target_files, stream=True, timeout=10)
 
             if format_of_db == "CIF":
                 if r.status_code == requests.codes.ok:
