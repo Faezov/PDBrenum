@@ -103,11 +103,8 @@ Users of PDBrenum should cite:
 
 **I, Wayne, only forked this to try to 'binderize' it to what was necessary to try and suggest to authors to do that to provide others an easier path to use the script version of this. See [the original repo](https://github.com/Faezov/PDBrenum) by Faezov [here](https://github.com/Faezov/PDBrenum) for the source and information.**
 
--------------
+I, Wayne, borrrowed the highligthed introductory text about notebooks at the top of the included notebook from Tim Sherratt's notebook here](https://github.com/GLAM-Workbench/te-papa-api/blob/master/Exploring-the-Te-Papa-collection-API.ipynb).
 
-### Technical notes about Binderizing
-
-Why are there network proxies hardcoded in the system variables in `PDBrenum.py`? (See `https://github.com/Faezov/PDBrenum/blob/1599aab7f1d1218bad323287cc02c595c850dc55/PDBrenum.ipynb` for that version.) I commented out that block of lines 28-33 in `PDBrenum.py` to get this 'mostly' to run on Binder. I say 'mostly' because it doesn't seem to get all of the SIFTs data at the 'Downloading SIFTS files' step and then hangs.
 
 -------------
 
