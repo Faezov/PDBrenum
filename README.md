@@ -101,7 +101,7 @@ Users of PDBrenum should cite:
 
 - [PDBrenum: A webserver and program providing Protein Data Bank files renumbered according to their UniProt sequences. Faezov B, Dunbrack RL Jr.PLoS One. 2021 Jul 6;16(7):e0253411. doi: 10.1371/journal.pone.0253411. eCollection 2021. PMID: 34228733](https://pubmed.ncbi.nlm.nih.gov/34228733/)
 
-**I, Wayne, only forked this to try to 'binderize' it to what was necessary to try and suggest to authors to do that to provide others an easier path to use the script version of this. See [the original repo](https://github.com/Faezov/PDBrenum) by Faezov [here](https://github.com/Faezov/PDBrenum) for the source and information.**
+***Clarifying Software Attribution: I, Wayne, am not involved in the PDBrenum software at all. Those in [the lab of Roland Dunbrack](http://dunbrack.fccc.edu/) are the developers and source of PDBrenum. See their materials, such as [the original repo](https://github.com/Faezov/PDBrenum) and [accompany article](https://pubmed.ncbi.nlm.nih.gov/34228733/). I simply set up this repository to make the software useable on the command line without installation headaches and in a full-featured, browser-based computational environment.***
 
 I, Wayne, borrrowed the highligthed introductory text about notebooks at the top of the included notebook from Tim Sherratt's notebook here](https://github.com/GLAM-Workbench/te-papa-api/blob/master/Exploring-the-Te-Papa-collection-API.ipynb).
 
