@@ -8,6 +8,8 @@ Take a demonstration tour of using the script by clicking the above badge to lau
 
 For those who only have a few structures/sequences to process, you can find a webserver to do the renumbering [here](http://dunbrack3.fccc.edu/PDBrenum/).
 
+Launch directly into [a companion notebook demonstrating mapping chain identifiers to UniProt identifiers by clicking here](https://mybinder.org/v2/gh/fomightez/PDBrenum/HEAD?filepath=chainID_mapping_to_UniProt_id_demo.ipynb).
+
 
 -------
 
