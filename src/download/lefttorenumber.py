@@ -5,8 +5,6 @@ from src.download.lookfilesinside import look_what_is_inside
 def left_to_renumber_mmCIF(default_input_path_to_mmCIF=current_directory + "/mmCIF",
                            default_output_path_to_mmCIF=current_directory + "/output_mmCIF"):
     without_already_renumbered_mmCIF = list()
-    # output_mmCIF_files_were_found_4Char = set()
-    # input_mmCIF_files_were_found_4Char = set()
     output_mmCIF_files_were_found_set = set()
     input_mmCIF_files_were_found_set = set()
 

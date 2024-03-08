@@ -2,7 +2,7 @@ from src.download.modules import *
 from src.renum.shared.handling_chain_numbering_clashes import handling_chain_numbering_clashes
 from src.renum.shared.SIFTS_tree_parser import SIFTS_tree_parser
 from src.renum.shared.renumbered_count_in_chains import renumbered_count_in_chains
-from src.download.downloadwithThreadPool import download_with_pool, url_formation_for_pool
+from src.download.downloadwithThreadPool import download_file, url_formation_for_pool
 PDBrenum_REMARK = [
     "REMARK   0  File processed by PDBrenum: http://dunbrack3.fccc.edu/PDBrenum      ",
     "REMARK   0  Author sequence numbering is replaced with UniProt numbering        ",
@@ -64,14 +64,14 @@ def try_SIFTS_tree_parser(default_input_path_to_SIFTS, SIFTS_name):
             break
         except EOFError:
             os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))
-            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name], default_input_path_to_SIFTS=default_input_path_to_SIFTS)[0],
+            download_file(url_formation_for_pool("SIFTS", [SIFTS_name], default_input_path_to_SIFTS=default_input_path_to_SIFTS)[0],
                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
         except ValueError:
             os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))
-            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name], default_input_path_to_SIFTS=default_input_path_to_SIFTS)[0],
+            download_file(url_formation_for_pool("SIFTS", [SIFTS_name], default_input_path_to_SIFTS=default_input_path_to_SIFTS)[0],
                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
         except OSError:
-            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name], default_input_path_to_SIFTS=default_input_path_to_SIFTS)[0],
+            download_file(url_formation_for_pool("SIFTS", [SIFTS_name], default_input_path_to_SIFTS=default_input_path_to_SIFTS)[0],
                                default_input_path_to_SIFTS=default_input_path_to_SIFTS)
     return product_tree_SIFTS
 
@@ -87,30 +87,30 @@ def try_PDB(default_input_path_to_PDB, PDB):
             try:
                 re.search('\.pdb(.*).gz', PDB).group(1)
                 os.remove(Path(str(default_input_path_to_PDB) + "/" + PDB))
-                download_with_pool(url_formation_for_pool("PDB_assembly", [PDB], default_input_path_to_PDB_assembly=default_input_path_to_PDB)[0],
+                download_file(url_formation_for_pool("PDB_assembly", [PDB], default_input_path_to_PDB_assembly=default_input_path_to_PDB)[0],
                                    default_input_path_to_PDB_assembly=default_input_path_to_PDB)
             except AttributeError:
                 os.remove(Path(str(default_input_path_to_PDB) + "/" + PDB))
-                download_with_pool(url_formation_for_pool("PDB", [PDB], default_input_path_to_PDB=default_input_path_to_PDB)[0],
+                download_file(url_formation_for_pool("PDB", [PDB], default_input_path_to_PDB=default_input_path_to_PDB)[0],
                                    default_input_path_to_PDB=default_input_path_to_PDB)
 
         except ValueError:
             try:
                 re.search('\.pdb(.*).gz', PDB).group(1)
                 os.remove(Path(str(default_input_path_to_PDB) + "/" + PDB))
-                download_with_pool(url_formation_for_pool("PDB_assembly", [PDB], default_input_path_to_PDB_assembly=default_input_path_to_PDB)[0],
+                download_file(url_formation_for_pool("PDB_assembly", [PDB], default_input_path_to_PDB_assembly=default_input_path_to_PDB)[0],
                                    default_input_path_to_PDB_assembly=default_input_path_to_PDB)
             except AttributeError:
                 os.remove(Path(str(default_input_path_to_PDB) + "/" + PDB))
-                download_with_pool(url_formation_for_pool("PDB", [PDB], default_input_path_to_PDB=default_input_path_to_PDB)[0],
+                download_file(url_formation_for_pool("PDB", [PDB], default_input_path_to_PDB=default_input_path_to_PDB)[0],
                                    default_input_path_to_PDB=default_input_path_to_PDB)
         except OSError:
             try:
                 re.search('\.pdb(.*).gz', PDB).group(1)
-                download_with_pool(url_formation_for_pool("PDB_assembly", [PDB], default_input_path_to_PDB_assembly=default_input_path_to_PDB)[0],
+                download_file(url_formation_for_pool("PDB_assembly", [PDB], default_input_path_to_PDB_assembly=default_input_path_to_PDB)[0],
                                    default_input_path_to_PDB_assembly=default_input_path_to_PDB)
             except AttributeError:
-                download_with_pool(url_formation_for_pool("PDB", [PDB], default_input_path_to_PDB=default_input_path_to_PDB)[0],
+                download_file(url_formation_for_pool("PDB", [PDB], default_input_path_to_PDB=default_input_path_to_PDB)[0],
                                    default_input_path_to_PDB=default_input_path_to_PDB)
     return split
 

@@ -2,7 +2,7 @@ from src.download.modules import *
 
 from src.renum.shared.handling_chain_numbering_clashes import handling_chain_numbering_clashes
 from src.renum.shared.renumbered_count_in_chains import renumbered_count_in_chains
-from src.download.downloadwithThreadPool import download_with_pool, url_formation_for_pool
+from src.download.downloadwithThreadPool import download_file, url_formation_for_pool
 from src.download import compressor
 
 
@@ -15,20 +15,20 @@ def try_MMCIF2Dict(default_input_path_to_mmCIF, mmCIF_name):
         except EOFError:
             os.remove(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name))
             if "assembly" in mmCIF_name:
-                download_with_pool(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
+                download_file(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
             else:
-                download_with_pool(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
+                download_file(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
         except ValueError:
             os.remove(Path(str(default_input_path_to_mmCIF) + "/" + mmCIF_name))
             if "assembly" in mmCIF_name:
-                download_with_pool(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
+                download_file(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
             else:
-                download_with_pool(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
+                download_file(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
         except OSError:
             if "assembly" in mmCIF_name:
-                download_with_pool(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
+                download_file(url_formation_for_pool("mmCIF_assembly", [mmCIF_name])[0])
             else:
-                download_with_pool(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
+                download_file(url_formation_for_pool("mmCIF", [mmCIF_name])[0])
     return mmcif_dict
 
 
@@ -41,14 +41,14 @@ def try_SIFTS_tree_parser(default_input_path_to_SIFTS, SIFTS_name):
             break
         except EOFError:
             os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))
-            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+            download_file(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
         except ValueError:
             os.remove(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name))
-            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+            download_file(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
         except OSError:
-            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+            download_file(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
         except Exception:
-            download_with_pool(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
+            download_file(url_formation_for_pool("SIFTS", [SIFTS_name])[0])
     return product_tree_SIFTS
 
 

@@ -1,228 +1,72 @@
-from src.download.modules import *
-from src.download import lefttodownload, catalogdownloader, lookfilesinside, latestcatreader
-from src.download.downloadwithThreadPool import run_downloads_with_ThreadPool, url_formation_for_pool, download_pdb_assemblies_list_with_lxml
+import os
+import shutil
+from src.download.holdingsdownloader import get_all_pdb_and_sifts
+from src.download.downloadwithThreadPool import run_downloads_with_ThreadPool, url_formation_for_pool
 
 
-# default_input_path_to_mmCIF = current_directory + "/mmCIF"
-# default_input_path_to_PDB = current_directory + "/PDB"
-# default_input_path_to_SIFTS = current_directory + "/SIFTS"
-# default_output_path_to_mmCIF = current_directory + "/output_mmCIF"
-# default_output_path_to_PDB = current_directory + "/output_PDB"
-#
-# default_input_path_to_mmCIF_assemblies = current_directory + "/mmCIF_assembly"
-# default_input_path_to_PDB_assemblies = current_directory + "/PDB_assembly"
-# default_output_path_to_mmCIF_assemblies = current_directory + "/output_mmCIF_assembly"
-# default_output_path_to_PDB_assemblies = current_directory + "/output_PDB_assembly"
+def prepare_paths(base_dir):
+    """Generates paths for different data types."""
+    paths = {
+        "mmCIF": {"input": f"{base_dir}/mmCIF", "output": f"{base_dir}/output_mmCIF"},
+        "PDB": {"input": f"{base_dir}/PDB", "output": f"{base_dir}/output_PDB"},
+        "SIFTS": {"input": f"{base_dir}/SIFTS", "output": None},
+        "mmCIF_assembly": {"input": f"{base_dir}/mmCIF_assembly", "output": f"{base_dir}/output_mmCIF_assembly"},
+        "PDB_assembly": {"input": f"{base_dir}/PDB_assembly", "output": f"{base_dir}/output_PDB_assembly"},
+    }
+    return paths
 
 
-def supreme_download_master(format_of_db, job_type=None,
-                            default_input_path_to_mmCIF=current_directory + "/mmCIF",
-                            default_input_path_to_PDB=current_directory + "/PDB",
-                            default_input_path_to_SIFTS=current_directory + "/SIFTS",
-                            default_input_path_to_mmCIF_assembly=current_directory + "/mmCIF_assembly",
-                            default_input_path_to_PDB_assembly=current_directory + "/PDB_assembly",
+def clear_paths(paths, format_of_db):
+    """Clears specified paths for a given format or all."""
+    for format, path_info in paths.items():
+        if format_of_db == "all" or format == format_of_db:
+            for key, path in path_info.items():
+                if path and os.path.exists(path):
+                    shutil.rmtree(path)
+                    os.makedirs(path, exist_ok=True)
 
-                            default_output_path_to_mmCIF=current_directory + "/output_mmCIF",
-                            default_output_path_to_PDB=current_directory + "/output_PDB",
-                            default_output_path_to_mmCIF_assemblies=current_directory + "/output_mmCIF_assembly",
-                            default_output_path_to_PDB_assemblies=current_directory + "/output_PDB_assembly"):
 
-    catalogdownloader.catalog_downloader()
+def download_data_for_format(format_of_db, paths, holdings):
+    """Downloads data for the specified format using provided paths."""
+    formats_to_download = ["mmCIF", "PDB", "SIFTS", "mmCIF_assembly", "PDB_assembly"] if format_of_db == "all" else [format_of_db]
+    left_to_download_info = []
+
+    for format in formats_to_download:
+        files = holdings.get(format, [])
+        input_path = paths[format]["input"]
+        try:
+            left_to_download = [fn for fn in files if fn not in os.listdir(input_path)]
+        except FileNotFoundError:
+            left_to_download = files
+
+        urls = url_formation_for_pool(format, left_to_download, default_input_path=input_path)
+
+        run_downloads_with_ThreadPool(format, urls)
+        left_to_download_info.append((format, left_to_download))
+
+    return left_to_download_info
+
+
+def supreme_download_master(format_of_db, job_type=None, default_input_path=os.getcwd()):
+    """Master function to manage downloading and refreshing data."""
+    paths = prepare_paths(default_input_path)
+    holdings = get_all_pdb_and_sifts()
 
     if job_type == "refresh":
-        if os.path.exists(default_input_path_to_SIFTS):
-            shutil.rmtree(default_input_path_to_SIFTS)
-        if format_of_db == "mmCIF":
-            if os.path.exists(default_input_path_to_mmCIF):
-                shutil.rmtree(default_input_path_to_mmCIF)
-            if os.path.exists(default_output_path_to_mmCIF):
-                shutil.rmtree(default_output_path_to_mmCIF)
+        clear_paths(paths, format_of_db)
 
-        if format_of_db == "mmCIF_assembly":
-            if os.path.exists(default_input_path_to_mmCIF_assembly):
-                shutil.rmtree(default_input_path_to_mmCIF_assembly)
-            if os.path.exists(default_output_path_to_mmCIF_assemblies):
-                shutil.rmtree(default_output_path_to_mmCIF_assemblies)
-
-        if format_of_db == "PDB":
-            if os.path.exists(default_input_path_to_PDB):
-                shutil.rmtree(default_input_path_to_PDB)
-            if os.path.exists(default_output_path_to_PDB):
-                shutil.rmtree(default_output_path_to_PDB)
-
-        if format_of_db == "PDB_assembly":
-            if os.path.exists(default_input_path_to_PDB_assembly):
-                shutil.rmtree(default_input_path_to_PDB_assembly)
-            if os.path.exists(default_output_path_to_PDB_assemblies):
-                shutil.rmtree(default_output_path_to_PDB_assemblies)
-
-        if format_of_db == "all":
-            if os.path.exists(default_input_path_to_PDB):
-                shutil.rmtree(default_input_path_to_PDB)
-            if os.path.exists(default_input_path_to_mmCIF):
-                shutil.rmtree(default_input_path_to_mmCIF)
-            if os.path.exists(default_input_path_to_PDB_assembly):
-                shutil.rmtree(default_input_path_to_PDB_assembly)
-            if os.path.exists(default_input_path_to_mmCIF_assembly):
-                shutil.rmtree(default_input_path_to_mmCIF_assembly)
-
-            if os.path.exists(default_output_path_to_mmCIF):
-                shutil.rmtree(default_output_path_to_mmCIF)
-            if os.path.exists(default_output_path_to_mmCIF_assemblies):
-                shutil.rmtree(default_output_path_to_mmCIF_assemblies)
-            if os.path.exists(default_output_path_to_PDB):
-                shutil.rmtree(default_output_path_to_PDB)
-            if os.path.exists(default_output_path_to_PDB_assemblies):
-                shutil.rmtree(default_output_path_to_PDB_assemblies)
-
-    if format_of_db == "mmCIF":
-        all_data_from_catreader = latestcatreader.latest_catalog_reader()
-        all_mmCIF_files_from_latest_catalog = all_data_from_catreader[0]
-        all_SIFTS_files_from_latest_catalog = all_data_from_catreader[2]
-
-        input_mmCIF_files_were_found = lookfilesinside.look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        left_to_download_mmCIF = lefttodownload.what_is_left_to_download(input_mmCIF_files_were_found, all_mmCIF_files_from_latest_catalog)
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", left_to_download_mmCIF, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-
-        input_SIFTS_files_were_found = lookfilesinside.look_what_is_inside("SIFTS", default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        left_to_download_SIFTS = lefttodownload.what_is_left_to_download(input_SIFTS_files_were_found, all_SIFTS_files_from_latest_catalog)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", left_to_download_SIFTS, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        return left_to_download_mmCIF
-
-    if format_of_db == "mmCIF_assembly":
-        all_data_from_catreader = latestcatreader.latest_catalog_reader()
-        all_mmCIF_files = all_data_from_catreader[0]
-        all_SIFTS_files_from_latest_catalog = all_data_from_catreader[2]
-
-        lefttodownload_mmCIF_assemblies = list()
-        input_mmCIF_assembly_files_were_found = lookfilesinside.look_what_is_inside(
-            "mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-
-        all_mmCIF_files_4char = set()
-        for mmCIF_file in all_mmCIF_files:
-            all_mmCIF_files_4char.add(mmCIF_file[:4])
-
-        input_mmCIF_assembly_files_were_found_4char = set()
-        for mmCIF_assembly_file in input_mmCIF_assembly_files_were_found:
-            input_mmCIF_assembly_files_were_found_4char.add(mmCIF_assembly_file[:4])
-
-        set_difference = all_mmCIF_files_4char - input_mmCIF_assembly_files_were_found_4char
-        list_difference = list(set_difference)
-
-        for mmCIF_id in list_difference:
-            lefttodownload_mmCIF_assemblies.append(mmCIF_id + ".cif.gz")
-
-        urls_to_target_mmCIF_assembly_files = url_formation_for_pool("mmCIF_assembly", lefttodownload_mmCIF_assemblies)
-        run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_assembly_files,
-                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-
-        input_SIFTS_files_were_found = lookfilesinside.look_what_is_inside("SIFTS", default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        left_to_download_SIFTS = lefttodownload.what_is_left_to_download(input_SIFTS_files_were_found, all_SIFTS_files_from_latest_catalog)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", left_to_download_SIFTS, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        return lefttodownload_mmCIF_assemblies
-
-    if format_of_db == "PDB":
-        all_data_from_catreader = latestcatreader.latest_catalog_reader()
-        all_PDB_files_from_latest_catalog = all_data_from_catreader[1]
-        all_SIFTS_files_from_latest_catalog = all_data_from_catreader[2]
-
-        input_PDB_files_were_found = lookfilesinside.look_what_is_inside("PDB", default_input_path_to_PDB=default_input_path_to_PDB)
-        left_to_download_PDB = lefttodownload.what_is_left_to_download(input_PDB_files_were_found, all_PDB_files_from_latest_catalog)
-        urls_to_target_PDB_files = url_formation_for_pool("PDB", left_to_download_PDB, default_input_path_to_PDB=default_input_path_to_PDB)
-        run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
-
-        input_SIFTS_files_were_found = lookfilesinside.look_what_is_inside("SIFTS", default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        left_to_download_SIFTS = lefttodownload.what_is_left_to_download(input_SIFTS_files_were_found, all_SIFTS_files_from_latest_catalog)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", left_to_download_SIFTS, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        return left_to_download_PDB
-
-    if format_of_db == "PDB_assembly":
-        all_data_from_catreader = latestcatreader.latest_catalog_reader()
-        all_SIFTS_files_from_latest_catalog = all_data_from_catreader[2]
-
-        download_all_PDB_assemblies = download_pdb_assemblies_list_with_lxml()
-        input_PDB_assembly_files_were_found = lookfilesinside.look_what_is_inside(
-            "PDB_assembly", default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
-        try:
-            len(download_all_PDB_assemblies)
-        except TypeError:
-            return print("Cannot reach https://ftp.wwpdb.org/pub/pdb/data/biounit/PDB/all/ maybe try again later")
-        lefttodownload_PDB_assemblies = [assembly for assembly in download_all_PDB_assemblies
-                                         if assembly.rsplit('/', 1)[-1] not in input_PDB_assembly_files_were_found]
-        run_downloads_with_ThreadPool("PDB_assembly", lefttodownload_PDB_assemblies,
-                                      default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
-
-        input_SIFTS_files_were_found = lookfilesinside.look_what_is_inside("SIFTS", default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        left_to_download_SIFTS = lefttodownload.what_is_left_to_download(input_SIFTS_files_were_found, all_SIFTS_files_from_latest_catalog)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", left_to_download_SIFTS, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-        return lefttodownload_PDB_assemblies
-
-    if format_of_db == "all":
-        all_data_from_catreader = latestcatreader.latest_catalog_reader()
-        all_mmCIF_files_from_latest_catalog = all_data_from_catreader[0]
-        all_PDB_files_from_latest_catalog = all_data_from_catreader[1]
-        all_SIFTS_files_from_latest_catalog = all_data_from_catreader[2]
-
-        input_mmCIF_files_were_found = lookfilesinside.look_what_is_inside("mmCIF", default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        input_PDB_files_were_found = lookfilesinside.look_what_is_inside("PDB", default_input_path_to_PDB=default_input_path_to_PDB)
-        input_SIFTS_files_were_found = lookfilesinside.look_what_is_inside("SIFTS", default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-
-        left_to_download_mmCIF = lefttodownload.what_is_left_to_download(input_mmCIF_files_were_found, all_mmCIF_files_from_latest_catalog)
-        left_to_download_PDB = lefttodownload.what_is_left_to_download(input_PDB_files_were_found, all_PDB_files_from_latest_catalog)
-        left_to_download_SIFTS = lefttodownload.what_is_left_to_download(input_SIFTS_files_were_found, all_SIFTS_files_from_latest_catalog)
-
-        urls_to_target_mmCIF_files = url_formation_for_pool("mmCIF", left_to_download_mmCIF, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        urls_to_target_PDB_files = url_formation_for_pool("PDB", left_to_download_PDB, default_input_path_to_PDB=default_input_path_to_PDB)
-        urls_to_target_SIFTS_files = url_formation_for_pool("SIFTS", left_to_download_SIFTS, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-
-        run_downloads_with_ThreadPool("mmCIF", urls_to_target_mmCIF_files, default_input_path_to_mmCIF=default_input_path_to_mmCIF)
-        run_downloads_with_ThreadPool("PDB", urls_to_target_PDB_files, default_input_path_to_PDB=default_input_path_to_PDB)
-        run_downloads_with_ThreadPool("SIFTS", urls_to_target_SIFTS_files, default_input_path_to_SIFTS=default_input_path_to_SIFTS)
-
-        # PDB_assembly
-        download_all_PDB_assemblies = download_pdb_assemblies_list_with_lxml()
-        input_PDB_assembly_files_were_found = lookfilesinside.look_what_is_inside("PDB_assembly")
-        try:
-            len(download_all_PDB_assemblies)
-        except TypeError:
-            return print("Cannot reach https://ftp.wwpdb.org/pub/pdb/data/biounit/PDB/all/ maybe try again later")
-        lefttodownload_PDB_assemblies = [assembly for assembly in download_all_PDB_assemblies
-                                         if assembly.rsplit('/', 1)[-1] not in input_PDB_assembly_files_were_found]
-        run_downloads_with_ThreadPool("PDB_assembly", lefttodownload_PDB_assemblies,
-                                      default_input_path_to_PDB_assembly=default_input_path_to_PDB_assembly)
-
-        # mmCIF_assembly
-        lefttodownload_mmCIF_assemblies = list()
-        input_mmCIF_assembly_files_were_found = lookfilesinside.look_what_is_inside(
-            "mmCIF_assembly", default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-
-        all_mmCIF_files_4char = set()
-        for mmCIF_file in all_mmCIF_files_from_latest_catalog:
-            all_mmCIF_files_4char.add(mmCIF_file[:4])
-
-        input_mmCIF_assembly_files_were_found_4char = set()
-        for mmCIF_assembly_file in input_mmCIF_assembly_files_were_found:
-            input_mmCIF_assembly_files_were_found_4char.add(mmCIF_assembly_file[:4])
-
-        set_difference = all_mmCIF_files_4char - input_mmCIF_assembly_files_were_found_4char
-        list_difference = list(set_difference)
-
-        for mmCIF_id in list_difference:
-            lefttodownload_mmCIF_assemblies.append(mmCIF_id + ".cif.gz")
-
-        urls_to_target_mmCIF_assembly_files = url_formation_for_pool("mmCIF_assembly", lefttodownload_mmCIF_assemblies,
-                                                                     default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-        run_downloads_with_ThreadPool("mmCIF_assembly", urls_to_target_mmCIF_assembly_files,
-                                      default_input_path_to_mmCIF_assembly=default_input_path_to_mmCIF_assembly)
-
-        return [left_to_download_mmCIF, left_to_download_PDB, lefttodownload_mmCIF_assemblies, lefttodownload_PDB_assemblies]
+    left_to_download_info = download_data_for_format(format_of_db, paths, holdings)
+    return left_to_download_info
 
 
-"""usage of supreme_download_master"""
-# supreme_download_master("mmCIF")
-# supreme_download_master("PDB")
+# Example usage
+base_directory = os.getcwd() # Or any base directory you prefer
+#print(base_directory)
+downloaded_files_info = supreme_download_master("mmCIF_assembly", job_type="refresh", default_input_path=os.getcwd())
+downloaded_files_info = supreme_download_master("mmCIF", job_type="refresh", default_input_path=os.getcwd())
+downloaded_files_info = supreme_download_master("PDB_assembly", job_type="refresh", default_input_path=os.getcwd())
+downloaded_files_info = supreme_download_master("PDB", job_type="refresh", default_input_path=os.getcwd())
+downloaded_files_info = supreme_download_master("SIFTS", job_type="refresh", default_input_path=os.getcwd())
+
+
+#print(downloaded_files_info)
