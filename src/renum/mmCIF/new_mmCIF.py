@@ -570,7 +570,6 @@ def SIFTS_tree_parser(handle_SIFTS):
     UniProtdbAccessionId_list = list()
     UniProt_conversion_dict = dict()
     details_list = list()
-    # Human_readable_AccessionID_list = list()
 
     for entity in root:
         if entity.tag.endswith("entity"):
@@ -657,13 +656,16 @@ def SIFTS_data_parser_for_mmCIF(tuple_PDBe_for_PDB_and_tuple_PDB, tuple_PDBe_for
     return [df_PDBe_PDB_UniProt_without_null_index_PDBe, df_PDBe_PDB_UniProt]
 
 
-def master_mmCIF_renumber_function(input_mmCIF_file_were_found, default_input_path_to_mmCIF,
-                                   default_input_path_to_SIFTS, default_output_path_to_mmCIF,
-                                   default_mmCIF_num, gzip_mode, exception_AccessionIDs):
-    input_mmCIF_assembly_files_were_found_list = list()
-    input_mmCIF_assembly_files_were_found_list.append(input_mmCIF_file_were_found)
+def master_mmCIF_renumber_function(mmCIF_files, default_path, default_mmCIF_num, gzip_mode, exception_AccessionIDs):
+    default_input_path_to_mmCIF = os.path.join(default_path,"mmCIF")
+    default_output_path_to_mmCIF = os.path.join(default_path, "mmCIF_output")
+    default_input_path_to_SIFTS = os.path.join(default_path, "SIFTS")
+    print(default_input_path_to_mmCIF)
 
-    for mmCIF_name in input_mmCIF_assembly_files_were_found_list:
+    input_mmCIF_list = list()
+    input_mmCIF_list.append(mmCIF_files)
+
+    for mmCIF_name in input_mmCIF_list:
         log_message = list()
         SIFTS_name = mmCIF_name[:4] + ".xml.gz"
 
@@ -672,6 +674,7 @@ def master_mmCIF_renumber_function(input_mmCIF_file_were_found, default_input_pa
             gzip.open(Path(str(default_input_path_to_SIFTS) + "/" + SIFTS_name), 'rt')
         except FileNotFoundError:
             mmcif_dict = try_MMCIF2Dict(default_input_path_to_mmCIF, mmCIF_name)
+            try_SIFTS_tree_parser(default_input_path_to_SIFTS, SIFTS_name)
             if mmcif_dict == 0:
                 continue
             copy_file(default_input_path_to_mmCIF, mmCIF_name, default_output_path_to_mmCIF, ".cif.gz", gzip_mode)
@@ -752,3 +755,56 @@ def master_mmCIF_renumber_function(input_mmCIF_file_were_found, default_input_pa
             # 5olg data swapped columns
             print("IndexError Warning this file is not renumbered:", mmCIF_name)
             copy_file(default_input_path_to_mmCIF, mmCIF_name, default_output_path_to_mmCIF, ".cif.gz", gzip_mode)
+
+
+
+  #
+  # def download_mmcif_file(file_type: str, mmCIF_name: str, input_path: Path) -> bool:
+  #       """Attempts to download a given mmCIF file to the specified path."""
+  #       url_path = url_formation_for_pool(file_type, [mmCIF_name], str(input_path))[0]
+  #       return download_file(url_path)  # Ensure this function returns True on success
+  #
+  #
+  #   def try_MMCIF2Dict(default_path: Path, mmCIF_name: str) -> Bio.PDB.MMCIF2Dict.MMCIF2Dict | None:
+  #       """Attempts to load an mmCIF file into a dictionary, redownloading up to 3 times if necessary."""
+  #       file_type = "mmCIF_assembly" if "assembly" in mmCIF_name else "mmCIF"
+  #       input_path = default_path / file_type
+  #       input_path.mkdir(parents=True, exist_ok=True)
+  #       mmcif_path = input_path / mmCIF_name
+  #       print(mmcif_path)
+  #
+  #       for attempt in range(3):
+  #           try:
+  #               with gzip.open(mmcif_path, 'rt') as file:
+  #                   return Bio.PDB.MMCIF2Dict.MMCIF2Dict(file)
+  #           except (EOFError, ValueError, OSError, FileNotFoundError) as e:
+  #               print(f"Error processing {mmCIF_name}: {e}. Attempting to redownload.")
+  #               mmcif_path.unlink(missing_ok=True)  # Remove potentially corrupt file
+  #               download_mmcif_file(file_type, mmCIF_name, input_path)
+  #
+  #       return None
+  #
+  #
+  #   def download_sifts_file(SIFTS_name: str, input_path: Path) -> bool:
+  #       """Attempts to download a given SIFTS file to the specified path."""
+  #       url_path = url_formation_for_pool("SIFTS", [SIFTS_name], str(input_path))[0]
+  #       return download_file(url_path)  # Ensure this function returns True on success
+  #
+  #
+  #   def try_SIFTS_tree_parser(default_input: Path, SIFTS_name: str):
+  #       """Attempts to load a SIFTS file, redownloading up to 3 times if necessary."""
+  #       input_path = default_input / "SIFTS"
+  #       input_path.mkdir(parents=True, exist_ok=True)
+  #       sifts_path = input_path / SIFTS_name
+  #       print(sifts_path)
+  #
+  #       for attempt in range(3):
+  #           try:
+  #               with gzip.open(sifts_path, 'rt') as handle_SIFTS:
+  #                   return SIFTS_tree_parser(handle_SIFTS)
+  #           except (EOFError, ValueError, OSError, FileNotFoundError) as e:
+  #               print(f"Error processing {SIFTS_name}: {e}. Attempting to redownload.")
+  #               sifts_path.unlink(missing_ok=True)  # Remove potentially corrupt file
+  #               download_sifts_file(SIFTS_name, input_path)
+  #
+  #       return None

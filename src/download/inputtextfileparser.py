@@ -1,41 +1,22 @@
-"""input text file will be parsed by comma, space, tab and new line"""
+import re
 
 
 def input_text_file_parser(filename):
-    with open(filename) as file:
-        file_contents = [line.rstrip() for line in file]
-    comma_space_tab_newline_parser = list()
-    for n_element in file_contents:
-        if "," in n_element:
-            n_parsed = n_element.split(",")
-            comma_space_tab_newline_parser.append(n_parsed)
-        elif " " in n_element:
-            n_parsed = n_element.split(" ")
-            comma_space_tab_newline_parser.append(n_parsed)
-        elif "\t" in n_element:
-            n_parsed = n_element.split("\t")
-            comma_space_tab_newline_parser.append(n_parsed)
-        elif "\n" in n_element:
-            n_parsed = n_element.split("\n")
-            comma_space_tab_newline_parser.append(n_parsed)
-        else:
-            comma_space_tab_newline_parser.append(n_element)
+    # Define a regular expression pattern to split on comma, space, tab, or new line
+    pattern = re.compile(r'[,\s\t\n]+')
 
-    if_list_parse_list = list()
-    for n_element in comma_space_tab_newline_parser:
-        if type(n_element) == list:
-            for d_list_parsed in n_element:
-                if d_list_parsed not in if_list_parse_list:
-                    if_list_parse_list.append(d_list_parsed)
+    # Read the entire file and split it using the defined pattern
+    with open(filename, 'r') as file:
+        file_contents = file.read()
+        parsed_elements = pattern.split(file_contents)
 
-    final_parsed_list = list()
-    for n_elem in if_list_parse_list:
-        for _ in range(3):
-            n_elem = n_elem.strip(",")
-            n_elem = n_elem.strip()
+    # Filter out any empty strings and elements shorter than 4 characters
+    parsed_elements = [elem for elem in parsed_elements if elem and len(elem) >= 4]
 
-        if len(n_elem) < 4:
-            continue
-        final_parsed_list.append(n_elem)
+    return parsed_elements
 
-    return final_parsed_list
+
+# Example usage
+# filename = '../../input.txt'
+# parsed_list = input_text_file_parser(filename)
+# print(parsed_list)

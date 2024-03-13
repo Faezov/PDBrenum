@@ -39,7 +39,7 @@ def download_data_for_format(format_of_db, paths, holdings):
         except FileNotFoundError:
             left_to_download = files
 
-        urls = url_formation_for_pool(format, left_to_download, default_input_path=input_path)
+        urls = url_formation_for_pool(format, left_to_download, default_path=input_path)
 
         run_downloads_with_ThreadPool(format, urls)
         left_to_download_info.append((format, left_to_download))
@@ -47,9 +47,9 @@ def download_data_for_format(format_of_db, paths, holdings):
     return left_to_download_info
 
 
-def supreme_download_master(format_of_db, job_type=None, default_input_path=os.getcwd()):
+def supreme_download_master(format_of_db, job_type=None, default_path=os.getcwd()):
     """Master function to manage downloading and refreshing data."""
-    paths = prepare_paths(default_input_path)
+    paths = prepare_paths(default_path)
     holdings = get_all_pdb_and_sifts()
 
     if job_type == "refresh":
@@ -60,13 +60,13 @@ def supreme_download_master(format_of_db, job_type=None, default_input_path=os.g
 
 
 # Example usage
-base_directory = os.getcwd() # Or any base directory you prefer
+#base_directory = os.getcwd() # Or any base directory you prefer
 #print(base_directory)
-downloaded_files_info = supreme_download_master("mmCIF_assembly", job_type="refresh", default_input_path=os.getcwd())
-downloaded_files_info = supreme_download_master("mmCIF", job_type="refresh", default_input_path=os.getcwd())
-downloaded_files_info = supreme_download_master("PDB_assembly", job_type="refresh", default_input_path=os.getcwd())
-downloaded_files_info = supreme_download_master("PDB", job_type="refresh", default_input_path=os.getcwd())
-downloaded_files_info = supreme_download_master("SIFTS", job_type="refresh", default_input_path=os.getcwd())
+#downloaded_files_info = supreme_download_master("mmCIF_assembly", job_type="refresh", default_path=os.getcwd())
+#downloaded_files_info = supreme_download_master("mmCIF", job_type="refresh", default_path=os.getcwd())
+#downloaded_files_info = supreme_download_master("PDB_assembly", job_type="refresh", default_path=os.getcwd())
+#downloaded_files_info = supreme_download_master("PDB", job_type="refresh", default_path=os.getcwd())
+#downloaded_files_info = supreme_download_master("SIFTS", job_type="refresh", default_path=os.getcwd())
 
 
 #print(downloaded_files_info)
