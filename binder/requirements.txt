@@ -1,6 +1,6 @@
-numpy==1.17
-pandas==0.25.1
-biopython==1.76
-tqdm==4.36.1
-requests==2.25.1
-lxml==4.6.2 
+numpy
+pandas
+biopython
+tqdm
+requests
+lxml 
