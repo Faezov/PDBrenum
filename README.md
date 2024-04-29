@@ -10,6 +10,8 @@ For those who only have a few structures/sequences to process, you can find a we
 
 Launch directly into [a companion notebook demonstrating mapping chain identifiers to UniProt identifiers by clicking here](https://mybinder.org/v2/gh/fomightez/PDBrenum/HEAD?filepath=chainID_mapping_to_UniProt_id_demo.ipynb).
 
+**Note: I believe the main script `PDBenum.py` will stop working once Pandas 2 is the only real one available.** See [here](https://stackoverflow.com/a/69618445/8508004) for how to fix to handle `level` keyword for many functions & methods, including `.count()` being deprecated.
+
 
 -------
 
