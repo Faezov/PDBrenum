@@ -10,7 +10,7 @@ For those who only have a few structures/sequences to process, you can find a we
 
 Launch directly into [a companion notebook demonstrating mapping chain identifiers to UniProt identifiers by clicking here](https://mybinder.org/v2/gh/fomightez/PDBrenum/HEAD?filepath=chainID_mapping_to_UniProt_id_demo.ipynb).
 
-**Note: I believe the main script `PDBenum.py` will stop working once Pandas 2 is the only real one available.** See [here](https://stackoverflow.com/a/69618445/8508004) for how to fix to handle `level` keyword for many functions & methods, including `.count()` being deprecated. I'm planning to make a `pandas2` branch where I try some of this. Fortunately for now, it works with the old code because while waiting for my PDBrenum fork to build an image for MyBinder I had serendiptuously tried in a session the [binder-requirements repo](https://github.com/binder-examples/requirements) and found it worked as it was and then I checked later the versions of Pandas and numpy and seen the ones the current binder example provides are old. While that is convenient for now, the default is to provide Pandas v2 if you make a new repo and so it would be nice to be thinking forward while there is time.
+**Note: [the 'pandas2' branch of this fork](https://github.com/fomightez/PDBrenum/tree/pandas2) has been fully updated to be compatible with Pandas v2.** Also launches from there, will give you a Jupyter session with Pandas version 2+ if you have code or scripts that works with that Pandas version.
 
 
 -------
