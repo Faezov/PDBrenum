@@ -1,0 +1,6 @@
+numpy==1.23.5
+pandas==1.5.1
+biopython
+tqdm
+requests
+lxml 
