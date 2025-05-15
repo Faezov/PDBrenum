@@ -107,8 +107,6 @@ Users of PDBrenum should cite:
 
 ***Clarifying Software Attribution: I, Wayne, am not involved in the PDBrenum software at all. Those in [the lab of Roland Dunbrack](http://dunbrack.fccc.edu/) are the developers and source of PDBrenum. See their materials, such as [the original repo](https://github.com/Faezov/PDBrenum) and [accompany article](https://pubmed.ncbi.nlm.nih.gov/34228733/). I simply set up this repository to make the software useable on the command line without installation headaches and in a full-featured, browser-based computational environment.***
 
-I, Wayne, borrrowed the highligthed introductory text about notebooks at the top of the included notebook from Tim Sherratt's notebook here](https://github.com/GLAM-Workbench/te-papa-api/blob/master/Exploring-the-Te-Papa-collection-API.ipynb).
-
 
 -------------
 
